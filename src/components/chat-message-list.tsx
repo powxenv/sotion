@@ -190,14 +190,14 @@ export default function ChatMessageList({
   error?: Error;
 }) {
   return (
-    <div className="mx-auto w-full max-w-3xl flex flex-col gap-4 pb-28">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-4 pb-38">
       {messages.map((message) => (
         <div
           key={message.id}
           className={cn(
-            "max-w-[90%] rounded-2xl",
+            "max-w-[90%] rounded-xl",
             message.role === "user"
-              ? "ml-auto bg-primary text-primary-foreground px-4 py-3"
+              ? "ml-auto bg-primary text-primary-foreground text-sm min-h-9 px-4 py-2.5"
               : "",
           )}
         >
