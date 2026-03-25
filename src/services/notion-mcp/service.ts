@@ -1,10 +1,12 @@
 import { auth as runMcpAuth } from "@ai-sdk/mcp";
 import type {
+  MCPClient,
   OAuthClientInformation,
   OAuthClientMetadata,
   OAuthClientProvider,
   OAuthTokens,
 } from "@ai-sdk/mcp";
+import { createMCPClient } from "@ai-sdk/mcp";
 import { and, eq, isNull } from "drizzle-orm";
 import { randomBytes, randomUUID } from "node:crypto";
 import { db } from "#/db";
@@ -39,6 +41,10 @@ export type NotionMcpStatus = {
   accessTokenExpiresAt: string | null;
   lastError: string | null;
 };
+
+export type AuthorizedNotionMcpClientResult =
+  | { ok: true; client: MCPClient }
+  | { ok: false };
 
 function sanitizeReturnTo(returnTo?: string | null) {
   if (!returnTo) {
@@ -379,6 +385,35 @@ export async function getNotionMcpStatusForRequest(
     accessTokenExpiresAt:
       connection?.accessTokenExpiresAt?.toISOString() || null,
     lastError: connection?.lastError || null,
+  };
+}
+
+export async function createAuthorizedNotionMcpClientForRequest(
+  request: Request,
+): Promise<AuthorizedNotionMcpClientResult> {
+  const session = await requireSession(request);
+  const connection = await findNotionMcpConnection(session.user.id);
+
+  if (connection?.status !== "connected" || !connection.accessToken) {
+    return { ok: false };
+  }
+
+  const flow = createProvider({
+    userId: session.user.id,
+    origin: new URL(request.url).origin,
+  });
+
+  const client = await createMCPClient({
+    transport: {
+      type: "http",
+      url: SERVER_URL,
+      authProvider: flow.provider,
+    },
+  });
+
+  return {
+    ok: true,
+    client,
   };
 }
 

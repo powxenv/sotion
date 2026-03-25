@@ -19,6 +19,17 @@ export async function listChatRows(userId: string) {
     .orderBy(desc(chat.updatedAt));
 }
 
+export async function findLatestChatRow(userId: string) {
+  const [record] = await db
+    .select()
+    .from(chat)
+    .where(eq(chat.userId, userId))
+    .orderBy(desc(chat.updatedAt))
+    .limit(1);
+
+  return record ?? null;
+}
+
 export async function findChatRow(chatId: string, userId: string) {
   const [record] = await db
     .select()

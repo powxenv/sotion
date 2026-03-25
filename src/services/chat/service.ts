@@ -3,6 +3,7 @@ import { requireSession } from "#/services/auth/session";
 import {
   createChatRow,
   findChatRow,
+  findLatestChatRow,
   listChatRows,
   updateChatRow,
 } from "#/services/chat/query";
@@ -24,6 +25,22 @@ export type ChatSummary = {
   messageCount: number;
   updatedAt: string;
 };
+
+function toChatRecord(record: {
+  id: string;
+  title: string | null;
+  messages: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): ChatRecord {
+  return {
+    id: record.id,
+    title: record.title || deriveChatTitle(parseMessages(record.messages)),
+    messagesJson: record.messages,
+    createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+  };
+}
 
 function parseMessages(value: string): ChatMessage[] {
   try {
@@ -102,6 +119,30 @@ export async function createChatForRequest(request: Request): Promise<string> {
   return id;
 }
 
+export async function getCurrentChatForRequest(
+  request: Request,
+): Promise<ChatRecord> {
+  const session = await requireSession(request);
+  const existing = await findLatestChatRow(session.user.id);
+
+  if (existing) {
+    return toChatRecord(existing);
+  }
+
+  const id = generateId();
+  const now = new Date().toISOString();
+
+  await createChatRow(id, session.user.id);
+
+  return {
+    id,
+    title: "Untitled chat",
+    messagesJson: "[]",
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 export async function listChatsForRequest(
   request: Request,
 ): Promise<ChatSummary[]> {
@@ -132,13 +173,7 @@ export async function loadChatForRequest(
     return null;
   }
 
-  return {
-    id: record.id,
-    title: record.title || deriveChatTitle(parseMessages(record.messages)),
-    messagesJson: record.messages,
-    createdAt: record.createdAt.toISOString(),
-    updatedAt: record.updatedAt.toISOString(),
-  };
+  return toChatRecord(record);
 }
 
 export async function saveChatForRequest(args: {

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as OnboardIndexRouteImport } from './routes/onboard.index'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as LayoutAppIndexRouteImport } from './routes/_layout.app.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiIntegrationsNotionConnectRouteImport } from './routes/api/integrations/notion/connect'
@@ -30,6 +31,11 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LayoutRoute,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutAppIndexRoute = LayoutAppIndexRouteImport.update({
   id: '/app/',
@@ -56,6 +62,7 @@ const ApiIntegrationsNotionCallbackRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/api/chat': typeof ApiChatRoute
   '/onboard/': typeof OnboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof LayoutAppIndexRoute
@@ -63,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/api/integrations/notion/connect': typeof ApiIntegrationsNotionConnectRoute
 }
 export interface FileRoutesByTo {
+  '/api/chat': typeof ApiChatRoute
   '/': typeof LayoutIndexRoute
   '/onboard': typeof OnboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -73,6 +81,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
+  '/api/chat': typeof ApiChatRoute
   '/_layout/': typeof LayoutIndexRoute
   '/onboard/': typeof OnboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -84,6 +93,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/api/chat'
     | '/onboard/'
     | '/api/auth/$'
     | '/app/'
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/api/integrations/notion/connect'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/api/chat'
     | '/'
     | '/onboard'
     | '/api/auth/$'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
+    | '/api/chat'
     | '/_layout/'
     | '/onboard/'
     | '/api/auth/$'
@@ -110,6 +122,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
+  ApiChatRoute: typeof ApiChatRoute
   OnboardIndexRoute: typeof OnboardIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiIntegrationsNotionCallbackRoute: typeof ApiIntegrationsNotionCallbackRoute
@@ -138,6 +151,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_layout/app/': {
       id: '/_layout/app/'
@@ -185,6 +205,7 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
+  ApiChatRoute: ApiChatRoute,
   OnboardIndexRoute: OnboardIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiIntegrationsNotionCallbackRoute: ApiIntegrationsNotionCallbackRoute,

@@ -46,6 +46,11 @@ export const Route = createFileRoute("/onboard/")({
     if (onboarding.completedAt) {
       throw redirect({ to: "/app" });
     }
+
+    await Promise.all([
+      context.queryClient.ensureQueryData(getNotionMcpStatusOptions()),
+      context.queryClient.ensureQueryData(listAiProviderSettingsOptions()),
+    ]);
   },
   component: OnboardPage,
 });
