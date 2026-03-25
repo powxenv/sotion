@@ -10,12 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
+import { Route as OnboardIndexRouteImport } from './routes/onboard.index'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
 import { Route as LayoutAppIndexRouteImport } from './routes/_layout.app.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiIntegrationsNotionConnectRouteImport } from './routes/api/integrations/notion/connect'
+import { Route as ApiIntegrationsNotionCallbackRouteImport } from './routes/api/integrations/notion/callback'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardIndexRoute = OnboardIndexRouteImport.update({
+  id: '/onboard/',
+  path: '/onboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutIndexRoute = LayoutIndexRouteImport.update({
@@ -33,35 +41,79 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiIntegrationsNotionConnectRoute =
+  ApiIntegrationsNotionConnectRouteImport.update({
+    id: '/api/integrations/notion/connect',
+    path: '/api/integrations/notion/connect',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiIntegrationsNotionCallbackRoute =
+  ApiIntegrationsNotionCallbackRouteImport.update({
+    id: '/api/integrations/notion/callback',
+    path: '/api/integrations/notion/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/onboard/': typeof OnboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof LayoutAppIndexRoute
+  '/api/integrations/notion/callback': typeof ApiIntegrationsNotionCallbackRoute
+  '/api/integrations/notion/connect': typeof ApiIntegrationsNotionConnectRoute
 }
 export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
+  '/onboard': typeof OnboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof LayoutAppIndexRoute
+  '/api/integrations/notion/callback': typeof ApiIntegrationsNotionCallbackRoute
+  '/api/integrations/notion/connect': typeof ApiIntegrationsNotionConnectRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/_layout/': typeof LayoutIndexRoute
+  '/onboard/': typeof OnboardIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_layout/app/': typeof LayoutAppIndexRoute
+  '/api/integrations/notion/callback': typeof ApiIntegrationsNotionCallbackRoute
+  '/api/integrations/notion/connect': typeof ApiIntegrationsNotionConnectRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/auth/$' | '/app/'
+  fullPaths:
+    | '/'
+    | '/onboard/'
+    | '/api/auth/$'
+    | '/app/'
+    | '/api/integrations/notion/callback'
+    | '/api/integrations/notion/connect'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/auth/$' | '/app'
-  id: '__root__' | '/_layout' | '/_layout/' | '/api/auth/$' | '/_layout/app/'
+  to:
+    | '/'
+    | '/onboard'
+    | '/api/auth/$'
+    | '/app'
+    | '/api/integrations/notion/callback'
+    | '/api/integrations/notion/connect'
+  id:
+    | '__root__'
+    | '/_layout'
+    | '/_layout/'
+    | '/onboard/'
+    | '/api/auth/$'
+    | '/_layout/app/'
+    | '/api/integrations/notion/callback'
+    | '/api/integrations/notion/connect'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
+  OnboardIndexRoute: typeof OnboardIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiIntegrationsNotionCallbackRoute: typeof ApiIntegrationsNotionCallbackRoute
+  ApiIntegrationsNotionConnectRoute: typeof ApiIntegrationsNotionConnectRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -71,6 +123,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof LayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboard/': {
+      id: '/onboard/'
+      path: '/onboard'
+      fullPath: '/onboard/'
+      preLoaderRoute: typeof OnboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/': {
@@ -94,6 +153,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/integrations/notion/connect': {
+      id: '/api/integrations/notion/connect'
+      path: '/api/integrations/notion/connect'
+      fullPath: '/api/integrations/notion/connect'
+      preLoaderRoute: typeof ApiIntegrationsNotionConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/integrations/notion/callback': {
+      id: '/api/integrations/notion/callback'
+      path: '/api/integrations/notion/callback'
+      fullPath: '/api/integrations/notion/callback'
+      preLoaderRoute: typeof ApiIntegrationsNotionCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -112,7 +185,10 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
+  OnboardIndexRoute: OnboardIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiIntegrationsNotionCallbackRoute: ApiIntegrationsNotionCallbackRoute,
+  ApiIntegrationsNotionConnectRoute: ApiIntegrationsNotionConnectRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

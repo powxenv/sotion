@@ -7,6 +7,8 @@ export const env = createEnv({
     NOTION_CLIENT_ID: z.string(),
     NOTION_CLIENT_SECRET: z.string(),
     DATABASE_URL: z.url(),
+    MCP_ENCRYPTION_KEY: z.string().min(32),
+    AI_PROVIDER_ENCRYPTION_KEY: z.string().min(32),
   },
 
   /**

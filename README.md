@@ -90,6 +90,29 @@ Then run migrations:
 bunx --bun @better-auth/cli migrate
 ```
 
+## Notion MCP Setup
+
+This project now includes a server-side Notion MCP OAuth integration.
+
+1. Add an `MCP_ENCRYPTION_KEY` to `.env.local`.
+   Use a high-entropy secret that is at least 32 characters long. The app uses
+   this to encrypt stored MCP access tokens, refresh tokens, PKCE verifiers, and
+   dynamic client registration secrets at rest.
+
+2. Add an `AI_PROVIDER_ENCRYPTION_KEY` to `.env.local`.
+   This is used to encrypt stored AI provider API keys. Keep it separate from
+   `MCP_ENCRYPTION_KEY`.
+
+3. Apply the database migration:
+
+```bash
+bun --bun run db:migrate
+```
+
+4. Start the app, sign in, and open `/onboard` to:
+   - connect your Notion workspace
+   - add at least one AI provider API key
+
 
 ## Shadcn
 

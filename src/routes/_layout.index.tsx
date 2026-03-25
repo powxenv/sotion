@@ -1,10 +1,18 @@
 import { Button } from "#/components/ui/button";
+import { getSessionOptions } from "#/services/auth/funcs";
 import { Video01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_layout/")({
   component: RouteComponent,
+  beforeLoad: async ({ context }) => {
+    const session =
+      await context.queryClient.ensureQueryData(getSessionOptions());
+    if (session) {
+      throw redirect({ to: "/app" });
+    }
+  },
 });
 
 function RouteComponent() {

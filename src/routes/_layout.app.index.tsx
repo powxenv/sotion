@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SentIcon, AiBrain01Icon } from "@hugeicons/core-free-icons";
+import McpDialog from "#/components/mcp-dialog";
 import { Button } from "#/components/ui/button";
 import { cn } from "#/lib/utils";
 import {
@@ -16,6 +17,10 @@ import {
   ComboboxSeparator,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { getNotionMcpStatusOptions } from "#/services/notion-mcp/funcs";
+import { getOnboardingStateOptions } from "#/services/onboarding/funcs";
+import { getSessionOptions } from "#/services/auth/funcs";
 
 const providers = [
   {
@@ -59,17 +64,38 @@ const providers = [
   },
 ] as const;
 
-export const Route = createFileRoute("/_layout/app/")({ component: App });
+export const Route = createFileRoute("/_layout/app/")({
+  beforeLoad: async ({ context }) => {
+    const session =
+      await context.queryClient.ensureQueryData(getSessionOptions());
+
+    if (!session) {
+      throw redirect({ to: "/" });
+    }
+
+    const onboarding = await context.queryClient.ensureQueryData(
+      getOnboardingStateOptions(),
+    );
+
+    if (!onboarding.completedAt) {
+      throw redirect({ to: "/onboard" });
+    }
+  },
+  component: App,
+});
 
 function App() {
+  const { data: mcpStatus } = useSuspenseQuery(getNotionMcpStatusOptions());
+
   return (
     <>
-      {/* 57px = header height */}
       <main className="py-8 h-[calc(100lvh-57px)]">
         <div className="inner h-full overflow-y-auto relative">
+          <McpDialog status={mcpStatus} />
+
           <div className="flex items-center justify-center flex-col">
             <img
-              className="h-60"
+              className="h-60 dark:invert"
               src="/notioly/Summer-Collection n.4.svg"
               alt=""
             />
@@ -130,17 +156,22 @@ function App() {
             </div>
           </div>
 
-          <div className="p-4 transition-all focus-within:border-primary border bg-white rounded-md flex flex-col gap-2 max-w-3xl mx-auto absolute bottom-6 left-1/2 -translate-x-1/2 w-full shadow-lg shadow-black/4">
+          <div className="p-4 transition-all focus-within:border-primary border bg-background rounded-md flex flex-col gap-2 max-w-3xl mx-auto absolute bottom-6 left-1/2 -translate-x-1/2 w-full shadow-lg shadow-black/4">
             <textarea
+              disabled={!mcpStatus.connected}
               placeholder="Type here..."
               className={cn(
                 "flex field-sizing-content min-h-9 w-full outline-none resize-none max-h-60 text-muted-foreground",
               )}
             />
+
             <div className="flex items-center justify-between">
               <div className="flex gap-1">
-                <Combobox items={providers}>
-                  <ComboboxInput placeholder="Select a model">
+                <Combobox items={providers} disabled={!mcpStatus.connected}>
+                  <ComboboxInput
+                    disabled={!mcpStatus.connected}
+                    placeholder="Select a model"
+                  >
                     <InputGroupAddon>
                       <HugeiconsIcon icon={AiBrain01Icon} />
                     </InputGroupAddon>
@@ -167,7 +198,7 @@ function App() {
                   </ComboboxContent>
                 </Combobox>
               </div>
-              <Button>
+              <Button disabled={!mcpStatus.connected}>
                 <HugeiconsIcon icon={SentIcon} />
               </Button>
             </div>
