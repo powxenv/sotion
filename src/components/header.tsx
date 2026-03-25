@@ -18,14 +18,16 @@ import {
   Notion02Icon,
 } from "@hugeicons/core-free-icons";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { getSessionOptions } from "#/lib/funcs/auth.funcs";
 import { authClient } from "#/lib/auth-client";
+import { getSessionOptions } from "#/services/auth/funcs";
 import { useTransition } from "react";
+import ThemeToggle from "./theme-toggle";
 import { Spinner } from "./ui/spinner";
 
 const Header = () => {
   const { data: session } = useSuspenseQuery(getSessionOptions());
   const [isSignInPending, startSignIn] = useTransition();
+  const [isSignOutPending, startSignOut] = useTransition();
 
   const signIn = async () => {
     startSignIn(async () => {
@@ -35,13 +37,20 @@ const Header = () => {
     });
   };
 
+  const signOut = async () => {
+    startSignOut(async () => {
+      await authClient.signOut();
+    });
+  };
+
   return (
     <header className="border-b">
       <div className="inner">
         <div className="h-14 flex items-center justify-between">
           <span>Sotion</span>
 
-          <div className="flex">
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
             {session ? (
               <>
                 <Button
@@ -86,14 +95,30 @@ const Header = () => {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-fit">
                     <DropdownMenuGroup>
-                      <DropdownMenuItem render={<a href="https://notion.so" target="_blank" rel="noopener noreferrer" />}>
+                      <DropdownMenuItem
+                        render={
+                          <a
+                            href="https://notion.so"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
+                        }
+                      >
                         Go to Notion <HugeiconsIcon icon={ArrowUpRight01Icon} />
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
-                      <DropdownMenuItem variant="destructive">
-                        <HugeiconsIcon icon={Logout01Icon} />
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={signOut}
+                        disabled={isSignOutPending}
+                      >
+                        {isSignOutPending ? (
+                          <Spinner />
+                        ) : (
+                          <HugeiconsIcon icon={Logout01Icon} />
+                        )}
                         Log out
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
