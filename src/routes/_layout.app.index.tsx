@@ -18,49 +18,143 @@ import {
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { listAiProviderSettingsOptions } from "#/services/ai-provider-settings/funcs";
 import { getNotionMcpStatusOptions } from "#/services/notion-mcp/funcs";
 import { getOnboardingStateOptions } from "#/services/onboarding/funcs";
 import { getSessionOptions } from "#/services/auth/funcs";
+import type { AiProvider } from "#/lib/ai-providers";
+
+type ProviderModel = {
+  providerId: AiProvider;
+  value: string;
+  label: string;
+};
 
 const providers = [
   {
     value: "OpenRouter",
     items: [
-      "anthropic/claude-sonnet-4-20250514",
-      "anthropic/claude-opus-4-20250514",
-      "anthropic/claude-3.5-sonnet",
-      "openai/gpt-4o",
-      "openai/gpt-4o-mini",
-      "google/gemini-2.5-pro-preview-03-25",
-      "meta-llama/llama-3.3-70b-instruct",
-      "deepseek/deepseek-chat",
+      {
+        providerId: "openrouter",
+        value: "openai/gpt-5.4",
+        label: "GPT-5.4",
+      },
+      {
+        providerId: "openrouter",
+        value: "anthropic/claude-sonnet-4.6",
+        label: "Claude Sonnet 4.6",
+      },
+      {
+        providerId: "openrouter",
+        value: "deepseek/deepseek-v3.2",
+        label: "DeepSeek V3.2",
+      },
+      {
+        providerId: "openrouter",
+        value: "moonshotai/kimi-k2.5",
+        label: "Kimi K2.5",
+      },
     ],
   },
   {
     value: "OpenAI",
     items: [
-      "gpt-4o",
-      "gpt-4o-mini",
-      "gpt-4-turbo",
-      "gpt-4",
-      "gpt-3.5-turbo",
-      "o1-preview",
-      "o1-mini",
+      {
+        providerId: "openai",
+        value: "gpt-5.4",
+        label: "GPT-5.4",
+      },
+      {
+        providerId: "openai",
+        value: "gpt-5-mini",
+        label: "GPT-5 Mini",
+      },
+      {
+        providerId: "openai",
+        value: "gpt-5-nano",
+        label: "GPT-5 Nano",
+      },
+      {
+        providerId: "openai",
+        value: "gpt-5.3-chat-latest",
+        label: "GPT-5.3",
+      },
     ],
   },
   {
     value: "Claude",
     items: [
-      "claude-sonnet-4-20250514",
-      "claude-opus-4-20250514",
-      "claude-3.5-sonnet",
-      "claude-3.5-haiku",
-      "claude-3-opus",
+      {
+        providerId: "claude",
+        value: "claude-sonnet-4-6",
+        label: "Claude Sonnet 4.6",
+      },
+      {
+        providerId: "claude",
+        value: "claude-opus-4-6",
+        label: "Claude Opus 4.6",
+      },
     ],
   },
   {
-    value: "Z.AI",
-    items: ["zai-7b", "zai-13b", "zai-34b", "zai-70b"],
+    value: "DeepSeek",
+    items: [
+      {
+        providerId: "deepseek",
+        value: "deepseek-chat",
+        label: "DeepSeek Chat",
+      },
+      {
+        providerId: "deepseek",
+        value: "deepseek-reasoner",
+        label: "DeepSeek Reasoner",
+      },
+    ],
+  },
+  {
+    value: "Moonshot AI",
+    items: [
+      {
+        providerId: "moonshot_ai",
+        value: "kimi-k2.5",
+        label: "Kimi K2.5",
+      },
+      {
+        providerId: "moonshot_ai",
+        value: "kimi-k2-thinking-turbo",
+        label: "Kimi K2 Thinking",
+      },
+    ],
+  },
+  {
+    value: "Z.AI China",
+    items: [
+      {
+        providerId: "zhipu_ai_china",
+        value: "glm-5",
+        label: "GLM-5",
+      },
+      {
+        providerId: "zhipu_ai_china",
+        value: "glm-4.7",
+        label: "GLM-4.7",
+      },
+    ],
+  },
+  {
+    value: "Z.AI International",
+    items: [
+      {
+        providerId: "zhipu_ai_international",
+        value: "glm-5",
+        label: "GLM-5",
+      },
+      {
+        providerId: "zhipu_ai_international",
+        value: "glm-4.7",
+        label: "GLM-4.7",
+      },
+    ],
   },
 ] as const;
 
@@ -80,12 +174,23 @@ export const Route = createFileRoute("/_layout/app/")({
     if (!onboarding.completedAt) {
       throw redirect({ to: "/onboard" });
     }
+
+    await Promise.all([
+      context.queryClient.ensureQueryData(getNotionMcpStatusOptions()),
+      context.queryClient.ensureQueryData(listAiProviderSettingsOptions()),
+    ]);
   },
   component: App,
 });
 
 function App() {
   const { data: mcpStatus } = useSuspenseQuery(getNotionMcpStatusOptions());
+  const { data: aiProviderSettings } = useSuspenseQuery(
+    listAiProviderSettingsOptions(),
+  );
+  const configuredProviders = new Set(
+    aiProviderSettings.map((setting) => setting.provider),
+  );
 
   return (
     <>
@@ -181,11 +286,22 @@ function App() {
                     <ComboboxList>
                       {(group, index) => (
                         <ComboboxGroup key={group.value} items={group.items}>
-                          <ComboboxLabel>{group.value}</ComboboxLabel>
+                          <ComboboxLabel className="flex items-center justify-between gap-2">
+                            <span>{group.value}</span>
+                            {!configuredProviders.has(group.items[0].providerId) ? (
+                              <span className="text-xs text-muted-foreground">
+                                Not set up
+                              </span>
+                            ) : null}
+                          </ComboboxLabel>
                           <ComboboxCollection>
-                            {(item) => (
-                              <ComboboxItem key={item} value={item}>
-                                {item}
+                            {(item: ProviderModel) => (
+                              <ComboboxItem
+                                key={item.value}
+                                value={item.value}
+                                disabled={!configuredProviders.has(item.providerId)}
+                              >
+                                {item.label}
                               </ComboboxItem>
                             )}
                           </ComboboxCollection>
