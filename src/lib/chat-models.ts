@@ -123,6 +123,12 @@ export const CHAT_MODEL_GROUPS = [
         modelId: "glm-4.7",
         label: "GLM-4.7",
       },
+      {
+        providerId: "zhipu_ai_china",
+        value: "zhipu_ai_china:glm-4.7-flash",
+        modelId: "glm-4.7-flash",
+        label: "GLM-4.7 Flash",
+      },
     ],
   },
   {
@@ -139,6 +145,12 @@ export const CHAT_MODEL_GROUPS = [
         value: "zhipu_ai_international:glm-4.7",
         modelId: "glm-4.7",
         label: "GLM-4.7",
+      },
+      {
+        providerId: "zhipu_ai_international",
+        value: "zhipu_ai_international:glm-4.7-flash",
+        modelId: "glm-4.7-flash",
+        label: "GLM-4.7 Flash",
       },
     ],
   },

@@ -48,11 +48,9 @@ function PartStatusIcon({
 
 function MessageMarkdown({
   children,
-  isAnimating,
   className,
 }: {
   children: string;
-  isAnimating: boolean;
   className?: string;
 }) {
   return (
@@ -61,8 +59,6 @@ function MessageMarkdown({
         "max-w-none text-sm leading-6 [&_a]:underline [&_code]:rounded [&_code]:bg-black/6 [&_code]:px-1.5 [&_code]:py-0.5 dark:[&_code]:bg-white/10 [&_pre]:overflow-x-auto",
         className,
       )}
-      animated
-      isAnimating={isAnimating}
     >
       {children}
     </Streamdown>
@@ -81,14 +77,7 @@ function MessagePart({
   isLastPart: boolean;
 }) {
   if (part.type === "text" && part.text.trim() !== "") {
-    return (
-      <MessageMarkdown
-        className="text-inherit"
-        isAnimating={isStreaming && part.state !== "done"}
-      >
-        {part.text}
-      </MessageMarkdown>
-    );
+    return <MessageMarkdown className="text-inherit">{part.text}</MessageMarkdown>;
   }
 
   if (isReasoningUIPart(part)) {
@@ -103,10 +92,7 @@ function MessagePart({
             Reasoning
           </AccordionTrigger>
           <AccordionContent>
-            <MessageMarkdown
-              className="text-muted-foreground"
-              isAnimating={isStreaming && part.state !== "done"}
-            >
+            <MessageMarkdown className="text-muted-foreground">
               {part.text}
             </MessageMarkdown>
           </AccordionContent>

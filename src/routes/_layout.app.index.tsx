@@ -39,6 +39,7 @@ import { ScrollArea } from "#/components/ui/scroll-area";
 const chatTransport = new DefaultChatTransport({
   api: "/api/chat",
 });
+const CHAT_MODEL_STORAGE_KEY = "chat:selected-model";
 
 const suggestedPrompts = [
   "Help me connect my X account",
@@ -92,6 +93,7 @@ function App() {
     () => getDefaultChatModelSelection(configuredProviders),
     [configuredProviders],
   );
+  const [hasLoadedStoredModel, setHasLoadedStoredModel] = useState(false);
   const [selectedModelOverride, setSelectedModelOverride] = useState<
     string | null
   >(null);
@@ -122,6 +124,37 @@ function App() {
   });
   const isChatDisabled =
     !mcpStatus.connected || !selectedModel || status !== "ready";
+
+  useEffect(() => {
+    const storedModel = window.localStorage.getItem(CHAT_MODEL_STORAGE_KEY);
+
+    if (storedModel && findChatModelOption(storedModel)) {
+      setSelectedModelOverride(storedModel);
+    } else if (storedModel) {
+      window.localStorage.removeItem(CHAT_MODEL_STORAGE_KEY);
+    }
+
+    setHasLoadedStoredModel(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedStoredModel) {
+      return;
+    }
+
+    if (!selectedModelOverride) {
+      window.localStorage.removeItem(CHAT_MODEL_STORAGE_KEY);
+      return;
+    }
+
+    if (!findChatModelOption(selectedModelOverride)) {
+      window.localStorage.removeItem(CHAT_MODEL_STORAGE_KEY);
+      setSelectedModelOverride(null);
+      return;
+    }
+
+    window.localStorage.setItem(CHAT_MODEL_STORAGE_KEY, selectedModelOverride);
+  }, [hasLoadedStoredModel, selectedModelOverride]);
 
   useEffect(() => {
     const frameId = window.requestAnimationFrame(() => {
