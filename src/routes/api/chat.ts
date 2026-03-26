@@ -13,8 +13,8 @@ import {
 import {
   resolveChatLanguageModel,
   saveChat,
-} from "#/services/chat/funcs";
-import { createAuthorizedNotionMcpClient } from "#/services/notion-mcp/funcs";
+} from "#/services/chat/server";
+import { createAuthorizedNotionMcpClient } from "#/services/notion-mcp/server";
 
 const chatRequestBodySchema = z.object({
   id: z.string().optional(),

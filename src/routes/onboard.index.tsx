@@ -1,9 +1,10 @@
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
   AiMagicIcon,
+  ArrowLeft01Icon,
   ArrowUpRight01Icon,
   CheckmarkBadge03Icon,
   ConnectIcon,
@@ -70,24 +71,40 @@ function OnboardPage() {
     listAiProviderSettingsOptions(),
   );
   const [isPending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<
+    "back-to-connect" | "back-to-provider" | "continue-to-finish" | "complete" | null
+  >(null);
 
   const completeSetup = () => {
     startTransition(async () => {
-      await completeOnboarding();
-      window.location.assign("/app");
+      setPendingAction("complete");
+
+      try {
+        await completeOnboarding();
+        window.location.assign("/app");
+      } finally {
+        setPendingAction(null);
+      }
     });
   };
 
   const navigateToStep = (
     step: "connect_workspace" | "setup_ai_provider" | "finish",
+    action: "back-to-connect" | "back-to-provider" | "continue-to-finish",
   ) => {
     startTransition(async () => {
-      await setOnboardingStep({
-        data: { step },
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["onboarding-state"],
-      });
+      setPendingAction(action);
+
+      try {
+        await setOnboardingStep({
+          data: { step },
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["onboarding-state"],
+        });
+      } finally {
+        setPendingAction(null);
+      }
     });
   };
 
@@ -280,16 +297,27 @@ function OnboardPage() {
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
                       variant="outline"
-                      onClick={() => navigateToStep("connect_workspace")}
+                      onClick={() =>
+                        navigateToStep("connect_workspace", "back-to-connect")
+                      }
                       disabled={isPending}
                     >
+                      {pendingAction === "back-to-connect" ? (
+                        <Spinner />
+                      ) : (
+                        <HugeiconsIcon
+                          icon={ArrowLeft01Icon}
+                          strokeWidth={2}
+                        />
+                      )}
                       Back
                     </Button>
                     <Button
-                      onClick={() => navigateToStep("finish")}
+                      onClick={() =>
+                        navigateToStep("finish", "continue-to-finish")
+                      }
                       disabled={isPending || !hasSavedProvider}
                     >
-                      {isPending ? <Spinner /> : null}
                       Continue
                     </Button>
                     <p className="text-sm text-muted-foreground">
@@ -338,13 +366,22 @@ function OnboardPage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
                     variant="outline"
-                    onClick={() => navigateToStep("setup_ai_provider")}
+                    onClick={() =>
+                      navigateToStep("setup_ai_provider", "back-to-provider")
+                    }
                     disabled={isPending}
                   >
+                    {pendingAction === "back-to-provider" ? (
+                      <Spinner />
+                    ) : (
+                      <HugeiconsIcon
+                        icon={ArrowLeft01Icon}
+                        strokeWidth={2}
+                      />
+                    )}
                     Back
                   </Button>
                   <Button onClick={completeSetup} disabled={isPending}>
-                    {isPending ? <Spinner /> : null}
                     Continue to App
                   </Button>
                 </div>

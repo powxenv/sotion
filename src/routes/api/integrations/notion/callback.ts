@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { auth } from "#/lib/auth";
-import { completeNotionMcpConnection } from "#/services/notion-mcp/funcs";
+import { completeNotionMcpConnection } from "#/services/notion-mcp/server";
 
 function buildErrorRedirect(request: Request, message: string) {
   const url = new URL("/app", request.url);

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { auth } from "#/lib/auth";
-import { beginNotionMcpConnection } from "#/services/notion-mcp/funcs";
+import { beginNotionMcpConnection } from "#/services/notion-mcp/server";
 
 export const Route = createFileRoute("/api/integrations/notion/connect")({
   server: {
