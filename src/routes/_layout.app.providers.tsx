@@ -62,7 +62,7 @@ function ProvidersPage() {
   return (
     <main className="py-10">
       <div className="inner">
-        <div className="mx-auto flex max-w-5xl flex-col gap-8">
+        <div className="flex flex-col gap-8">
           <div className="space-y-3">
             <h1 className="text-4xl font-bold">AI Providers</h1>
             <p className="max-w-2xl text-muted-foreground">
