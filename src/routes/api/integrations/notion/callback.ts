@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { completeNotionMcpConnection } from "#/services/notion-mcp/service";
+import { auth } from "#/lib/auth";
+import { completeNotionMcpConnection } from "#/services/notion-mcp/funcs";
 
 function buildErrorRedirect(request: Request, message: string) {
   const url = new URL("/app", request.url);
@@ -11,6 +12,12 @@ export const Route = createFileRoute("/api/integrations/notion/callback")({
   server: {
     handlers: {
       GET: async ({ request }) => {
+        const session = await auth.api.getSession({ headers: request.headers });
+
+        if (!session) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
         const url = new URL(request.url);
         const error = url.searchParams.get("error");
         const code = url.searchParams.get("code");
@@ -25,11 +32,12 @@ export const Route = createFileRoute("/api/integrations/notion/callback")({
         }
 
         try {
-          const returnTo = await completeNotionMcpConnection(
-            request,
-            code,
-            state,
-          );
+          const returnTo = await completeNotionMcpConnection({
+            userId: session.user.id,
+            origin: url.origin,
+            authorizationCode: code,
+            callbackState: state,
+          });
           return Response.redirect(new URL(returnTo, request.url), 302);
         } catch (callbackError) {
           console.error("Notion MCP callback failed", callbackError);

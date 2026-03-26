@@ -5,13 +5,16 @@ import {
 } from "ai";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { auth } from "#/lib/auth";
 import {
   createChatAgent,
   type ChatMessage,
 } from "#/services/chat/agent";
-import { saveChatForRequest } from "#/services/chat/service";
-import { resolveChatLanguageModelForRequest } from "#/services/chat/model";
-import { createAuthorizedNotionMcpClientForRequest } from "#/services/notion-mcp/service";
+import {
+  resolveChatLanguageModel,
+  saveChat,
+} from "#/services/chat/funcs";
+import { createAuthorizedNotionMcpClient } from "#/services/notion-mcp/funcs";
 
 const chatRequestBodySchema = z.object({
   id: z.string().optional(),
@@ -24,6 +27,12 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const session = await auth.api.getSession({ headers: request.headers });
+
+        if (!session) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
         const { id, chatId, messages, selectedModel } =
           chatRequestBodySchema.parse(await request.json());
         const resolvedChatId = chatId || id;
@@ -33,7 +42,10 @@ export const Route = createFileRoute("/api/chat")({
         }
 
         const mcpClientResult =
-          await createAuthorizedNotionMcpClientForRequest(request);
+          await createAuthorizedNotionMcpClient({
+            userId: session.user.id,
+            origin: new URL(request.url).origin,
+          });
 
         if (!mcpClientResult.ok) {
           return Response.json(
@@ -50,16 +62,16 @@ export const Route = createFileRoute("/api/chat")({
             tools,
           });
 
-          await saveChatForRequest({
-            request,
+          await saveChat({
+            userId: session.user.id,
             chatId: resolvedChatId,
             messages: validatedMessages,
           });
 
-          const model = await resolveChatLanguageModelForRequest(
-            request,
+          const model = await resolveChatLanguageModel({
+            userId: session.user.id,
             selectedModel,
-          );
+          });
 
           const agent = createChatAgent({ model, tools });
 
@@ -73,8 +85,8 @@ export const Route = createFileRoute("/api/chat")({
             }),
             onFinish: async ({ messages: responseMessages }) => {
               await Promise.all([
-                saveChatForRequest({
-                  request,
+                saveChat({
+                  userId: session.user.id,
                   chatId: resolvedChatId,
                   messages: responseMessages,
                 }),

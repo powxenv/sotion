@@ -84,7 +84,7 @@ function App() {
   );
   const { data: currentChat } = useSuspenseQuery(getCurrentChatOptions());
   const configuredProviders = useMemo(
-    () => new Set(aiProviderSettings.map((setting) => setting.provider)),
+    () => new Set(aiProviderSettings),
     [aiProviderSettings],
   );
   const defaultSelectedModel = useMemo(

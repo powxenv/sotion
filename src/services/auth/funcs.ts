@@ -1,11 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
-import { getServerRequest } from "#/services/shared/request";
-import { getSessionForRequest } from "#/services/auth/session";
+import { getRequestHeaders } from "@tanstack/react-start/server";
+import { auth } from "#/lib/auth";
 
 export const getSession = createServerFn({ method: "POST" }).handler(
   async () => {
-    return getSessionForRequest(getServerRequest());
+    const headers = getRequestHeaders();
+    return auth.api.getSession({ headers });
   },
 );
 

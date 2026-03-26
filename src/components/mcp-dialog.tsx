@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "#/components/ui/dialog";
-import type { NotionMcpStatus } from "#/services/notion-mcp/service";
+import type { NotionMcpStatus } from "#/services/notion-mcp/funcs";
 
 type NotionMcpDialogProps = {
   status: NotionMcpStatus;

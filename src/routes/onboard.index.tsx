@@ -95,9 +95,7 @@ function OnboardPage() {
   const isAiProviderStep = onboarding.currentStep === "setup_ai_provider";
   const isFinishStep = onboarding.currentStep === "finish";
   const hasSavedProvider = aiProviderSettings.length > 0;
-  const savedProviders = new Set(
-    aiProviderSettings.map((item) => item.provider),
-  );
+  const savedProviders = new Set(aiProviderSettings);
   const isConnectComplete = isAiProviderStep || isFinishStep;
   const isAiProviderComplete = isFinishStep;
 
