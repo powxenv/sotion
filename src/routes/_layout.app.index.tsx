@@ -3,7 +3,7 @@ import { useChat } from "@ai-sdk/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SentIcon, AiBrain01Icon } from "@hugeicons/core-free-icons";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ChatMessageList from "#/components/chat-message-list";
 import McpDialog from "#/components/mcp-dialog";
 import { Button } from "#/components/ui/button";
@@ -78,6 +78,7 @@ export const Route = createFileRoute("/_layout/app/")({
 
 function App() {
   const [input, setInput] = useState("");
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { data: mcpStatus } = useSuspenseQuery(getNotionMcpStatusOptions());
   const { data: aiProviderSettings } = useSuspenseQuery(
     listAiProviderSettingsOptions(),
@@ -122,6 +123,25 @@ function App() {
   const isChatDisabled =
     !mcpStatus.connected || !selectedModel || status !== "ready";
 
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      const viewport = scrollAreaRef.current?.querySelector<HTMLDivElement>(
+        '[data-slot="scroll-area-viewport"]',
+      );
+
+      if (!viewport) {
+        return;
+      }
+
+      viewport.scrollTo({
+        top: viewport.scrollHeight,
+        behavior: "auto",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [messages, status]);
+
   const submitMessage = useCallback(
     async (text: string) => {
       const value = text.trim();
@@ -153,39 +173,39 @@ function App() {
       <McpDialog status={mcpStatus} />
 
       <main className="h-[calc(100lvh-57px)] relative">
-        <ScrollArea className="h-full overflow-y-auto">
+        <ScrollArea ref={scrollAreaRef} className="h-full overflow-y-auto">
           <div className="inner py-8 h-full">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center flex-col">
-                <img
-                  className="h-60 dark:invert"
-                  src="/notioly/Summer-Collection n.4.svg"
-                  alt=""
-                />
-                <h1 className="text-3xl font-bold mb-2">Welcome!</h1>
-                <p className="text-muted-foreground max-w-sm text-center">
-                  Try typing below or click quick prompts to get started
-                </p>
-                <div className="flex flex-wrap gap-1 mt-6 max-w-2xl justify-center">
-                  {suggestedPrompts.map((prompt) => (
-                    <Button
-                      key={prompt}
-                      className="justify-start text-muted-foreground"
-                      variant="secondary"
-                      size="lg"
-                      disabled={isChatDisabled}
-                      onClick={() => submitMessage(prompt)}
-                    >
-                      <span>{prompt}</span>
-                    </Button>
-                  ))}
+                  <img
+                    className="h-60 dark:invert"
+                    src="/notioly/Summer-Collection n.4.svg"
+                    alt=""
+                  />
+                  <h1 className="text-3xl font-bold mb-2">Welcome!</h1>
+                  <p className="text-muted-foreground max-w-sm text-center">
+                    Try typing below or click quick prompts to get started
+                  </p>
+                  <div className="flex flex-wrap gap-1 mt-6 max-w-2xl justify-center">
+                    {suggestedPrompts.map((prompt) => (
+                      <Button
+                        key={prompt}
+                        className="justify-start text-muted-foreground"
+                        variant="secondary"
+                        size="lg"
+                        disabled={isChatDisabled}
+                        onClick={() => submitMessage(prompt)}
+                      >
+                        <span>{prompt}</span>
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <ChatMessageList
-                messages={messages}
-                status={status}
-                error={error}
+              ) : (
+                <ChatMessageList
+                  messages={messages}
+                  status={status}
+                  error={error}
               />
             )}
           </div>

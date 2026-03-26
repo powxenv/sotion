@@ -135,7 +135,7 @@
     @apply -tracking-wider;
   }
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring/50 scroll-smooth;
   }
   body {
     background-color: var(--background);
