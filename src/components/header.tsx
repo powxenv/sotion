@@ -67,7 +67,7 @@ const Header = () => {
                   nativeButton={false}
                   className="justify-start text-muted-foreground"
                   variant="ghost"
-                  render={<Link to="/" />}
+                  render={<Link to="/app/providers" />}
                 >
                   <HugeiconsIcon icon={AiMagicIcon} />
                   <span>AI Providers</span>
