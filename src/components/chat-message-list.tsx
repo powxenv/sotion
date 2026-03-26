@@ -23,6 +23,29 @@ function toJson<T>(value: T) {
   return JSON.stringify(value, null, 2);
 }
 
+function isToolPartDone(part: ChatMessagePart) {
+  return (
+    isToolUIPart(part) &&
+    (part.state === "output-available" ||
+      part.state === "output-error" ||
+      part.state === "output-denied")
+  );
+}
+
+function PartStatusIcon({
+  isPending,
+  icon,
+}: {
+  isPending: boolean;
+  icon: typeof Idea01Icon;
+}) {
+  if (isPending) {
+    return <Spinner className="size-4" />;
+  }
+
+  return <HugeiconsIcon className="size-4" icon={icon} />;
+}
+
 function MessageMarkdown({
   children,
   isAnimating,
@@ -49,9 +72,13 @@ function MessageMarkdown({
 function MessagePart({
   part,
   isStreaming,
+  isLastMessage,
+  isLastPart,
 }: {
   part: ChatMessagePart;
   isStreaming: boolean;
+  isLastMessage: boolean;
+  isLastPart: boolean;
 }) {
   if (part.type === "text" && part.text.trim() !== "") {
     return (
@@ -65,11 +92,14 @@ function MessagePart({
   }
 
   if (isReasoningUIPart(part)) {
+    const isPending =
+      isLastMessage && isLastPart && isStreaming && part.state !== "done";
+
     return (
       <Accordion>
         <AccordionItem value="reasoning">
           <AccordionTrigger className="flex items-center gap-1">
-            <HugeiconsIcon className="size-4" icon={Idea01Icon} />
+            <PartStatusIcon isPending={isPending} icon={Idea01Icon} />
             Reasoning
           </AccordionTrigger>
           <AccordionContent>
@@ -86,11 +116,14 @@ function MessagePart({
   }
 
   if (isToolUIPart(part)) {
+    const isPending =
+      isLastMessage && isLastPart && isStreaming && !isToolPartDone(part);
+
     return (
       <Accordion>
         <AccordionItem value="tool">
           <AccordionTrigger className="flex items-center gap-1">
-            <HugeiconsIcon className="size-4" icon={Wrench01Icon} />
+            <PartStatusIcon isPending={isPending} icon={Wrench01Icon} />
             Calling {getToolName(part)}
           </AccordionTrigger>
           <AccordionContent>
@@ -209,7 +242,7 @@ export default function ChatMessageList({
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl flex flex-col gap-4 pb-50">
-      {messages.map((message) => (
+      {messages.map((message, messageIndex) => (
         <div
           key={message.id}
           className={cn(
@@ -224,6 +257,8 @@ export default function ChatMessageList({
                 key={`${message.id}-${part.type}-${index}`}
                 part={part}
                 isStreaming={status === "streaming" || status === "submitted"}
+                isLastMessage={messageIndex === messages.length - 1}
+                isLastPart={index === message.parts.length - 1}
               />
             ))}
           </div>
