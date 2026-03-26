@@ -2,23 +2,22 @@ import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { ArrowUpRight01Icon } from "@hugeicons/core-free-icons";
+import {
+  AiMagicIcon,
+  ArrowUpRight01Icon,
+  CheckmarkBadge03Icon,
+  ConnectIcon,
+  Flag02Icon,
+} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "#/components/ui/field";
+import { Field, FieldError, FieldGroup } from "#/components/ui/field";
 import { Input } from "#/components/ui/input";
 import { Spinner } from "#/components/ui/spinner";
-import {
-  AI_PROVIDERS,
-} from "#/lib/ai-providers";
+import { AI_PROVIDERS } from "#/lib/ai-providers";
 import {
   listAiProviderSettingsOptions,
   saveAiProviderApiKey,
@@ -29,6 +28,13 @@ import {
   completeOnboarding,
   getOnboardingStateOptions,
 } from "#/services/onboarding/funcs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { cn } from "#/lib/utils";
 
 export const Route = createFileRoute("/onboard/")({
   beforeLoad: async ({ context }) => {
@@ -81,123 +87,179 @@ function OnboardPage() {
   return (
     <main className="min-h-lvh flex items-center py-10">
       <div className="inner">
-        <div className="mx-auto flex flex-col gap-4">
-          <div className="flex items-center text-xl font-bold gap-1">
-            <img className="size-10" src="/logo.png" alt="Sotion Logo" />
-            Sotion
-            <Badge variant="outline">Onboarding</Badge>
-          </div>
-
-          {isConnectStep ? (
-            <div className="space-y-4">
-              <div className="flex flex-col gap-4">
-                <h1 className="text-4xl font-bold">
-                  Step 1. Connect Notion MCP
-                </h1>
-                <div className="text-muted-foreground space-y-3">
-                  <p>
-                    Sotion helps you manage your social media workflow, from
-                    shaping ideas into content to getting posts ready to
-                    publish.
-                  </p>
-                  <p>
-                    If your ideas, drafts, and content notes already live in
-                    Notion, connecting your workspace gives Sotion the context
-                    it needs to work from the same source as you.
-                  </p>
-                  <p>
-                    After that, you can simply chat with Sotion. It can help you
-                    pull from your Notion pages, turn rough notes into posts,
-                    and move faster without copying things around manually.
-                  </p>
-                  <p>
-                    <a
-                      href="https://www.notion.com/help/notion-mcp"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="underline"
-                    >
-                      Learn more about Notion MCP
-                    </a>
-                    .
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  nativeButton={false}
-                  render={
-                    <a href="/api/integrations/notion/connect?returnTo=/onboard" />
-                  }
-                >
-                  {mcpStatus.hasConnectedBefore
-                    ? "Reconnect Workspace"
-                    : "Connect Workspace"}
-                </Button>
-              </div>
-            </div>
-          ) : null}
-
-          {isAiProviderStep ? (
-            <div className="grid grid-cols-2 gap-10">
-              <div className="flex flex-col gap-4">
-                <h1 className="text-4xl font-bold">
-                  Step 2. Set up AI provider
-                </h1>
-                <div className="text-muted-foreground space-y-3">
-                  <p>Your Notion workspace is connected.</p>
-                  <p>
-                    Add at least one AI provider API key so Sotion can write,
-                    refine, and manage your content through chat.
-                  </p>
-                  <p>
-                    Your API keys are stored securely and encrypted end to end.
-                  </p>
-                  <p>
-                    You only need one provider to get started, and you can add
-                    more later.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <div className="space-y-4">
-                  {AI_PROVIDERS.map((provider) => {
-                    const isSaved = savedProviders.has(provider.id);
-
-                    return (
-                      <AiProviderForm
-                        key={provider.id}
-                        provider={provider}
-                        isSaved={isSaved}
-                        onSaved={async () => {
-                          await queryClient.invalidateQueries({
-                            queryKey: ["ai-provider-settings"],
-                          });
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    onClick={completeSetup}
-                    disabled={isPending || !hasSavedProvider}
+        <div className="flex items-center text-xl font-bold gap-1 mb-8">
+          <img className="size-10" src="/logo.png" alt="Sotion Logo" />
+          Sotion
+        </div>
+        <div className="grid lg:grid-cols-2 gap-10 items-start">
+          <div className="bg-muted p-8 rounded-xl">
+            <div className="flex flex-col gap-6">
+              <h1 className="text-2xl font-bold">Set up your workspace</h1>
+              <div className="flex flex-col gap-8">
+                <div className="flex items-start gap-4">
+                  <div
+                    className={cn(
+                      "size-14 shrink-0 rounded-full bg-background text-background-foreground flex justify-center items-center relative",
+                      isConnectStep && "border border-dashed border-zinc-500",
+                      isAiProviderStep && "bg-primary text-primary-foreground",
+                    )}
                   >
-                    {isPending ? <Spinner /> : null}
-                    Continue to App
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    {hasSavedProvider
-                      ? "At least one provider is ready."
-                      : "Save at least one API key to continue."}
-                  </p>
+                    {isAiProviderStep ? (
+                      <HugeiconsIcon
+                        icon={CheckmarkBadge03Icon}
+                        strokeWidth={2}
+                      />
+                    ) : (
+                      <HugeiconsIcon icon={ConnectIcon} strokeWidth={2} />
+                    )}
+                    <div className="absolute left-1/2 -translate-x-1/2 border-zinc-500 border-r border-dashed h-13 bottom-0 translate-y-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      Connect to Your Workspace
+                    </h3>
+                    <p>
+                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                      Sequi odit.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="size-14 shrink-0 rounded-full bg-background text-background-foreground flex justify-center items-center relative">
+                    <HugeiconsIcon icon={AiMagicIcon} strokeWidth={2} />
+                    <div className="absolute left-1/2 -translate-x-1/2 border-zinc-500 border-r border-dashed h-13 bottom-0 translate-y-full"></div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Add AI Providers</h3>
+                    <p>
+                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                      Sequi odit.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="size-14 shrink-0 rounded-full bg-background text-background-foreground flex justify-center items-center">
+                    <HugeiconsIcon icon={Flag02Icon} strokeWidth={2} />
+                  </div>
+                  <h3 className="text-lg font-semibold">Finish!</h3>
                 </div>
               </div>
             </div>
-          ) : null}
+          </div>
+          <div>
+            {isConnectStep ? (
+              <div className="mx-auto max-w-2xl flex flex-col gap-4">
+                <div className="space-y-4">
+                  <div className="flex flex-col gap-4">
+                    <span className="font-medium text-muted-foreground">
+                      Step 1 of 2
+                    </span>
+                    <h2 className="text-4xl font-bold">Connect Notion MCP</h2>
+                    <div className="text-muted-foreground space-y-3">
+                      <p>
+                        Sotion helps you manage your social media workflow, from
+                        shaping ideas into content to getting posts ready to
+                        publish.
+                      </p>
+                      <p>
+                        If your ideas, drafts, and content notes already live in
+                        Notion, connecting your workspace gives Sotion the
+                        context it needs to work from the same source as you.
+                      </p>
+                      <p>
+                        After that, you can simply chat with Sotion. It can help
+                        you pull from your Notion pages, turn rough notes into
+                        posts, and move faster without copying things around
+                        manually.
+                      </p>
+                      <p>
+                        <a
+                          href="https://www.notion.com/help/notion-mcp"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline"
+                        >
+                          Learn more about Notion MCP
+                        </a>
+                        .
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      nativeButton={false}
+                      render={
+                        <a href="/api/integrations/notion/connect?returnTo=/onboard" />
+                      }
+                    >
+                      {mcpStatus.hasConnectedBefore
+                        ? "Reconnect Workspace"
+                        : "Connect Workspace"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {isAiProviderStep ? (
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-4">
+                  <span className="font-medium text-muted-foreground">
+                    Step 1 of 2
+                  </span>
+                  <h2 className="text-4xl font-bold">Set up AI provider</h2>
+                  <div className="text-muted-foreground space-y-3">
+                    <p>Your Notion workspace is connected.</p>
+                    <p>
+                      Add at least one AI provider API key so Sotion can write,
+                      refine, and manage your content through chat.
+                    </p>
+                    <p>
+                      Your API keys are stored securely and encrypted end to
+                      end.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <Accordion className="space-y-4">
+                    {AI_PROVIDERS.map((provider) => {
+                      const isSaved = savedProviders.has(provider.id);
+
+                      return (
+                        <AiProviderForm
+                          key={provider.id}
+                          provider={provider}
+                          isSaved={isSaved}
+                          onSaved={async () => {
+                            await queryClient.invalidateQueries({
+                              queryKey: ["ai-provider-settings"],
+                            });
+                          }}
+                        />
+                      );
+                    })}
+                  </Accordion>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      onClick={completeSetup}
+                      disabled={isPending || !hasSavedProvider}
+                    >
+                      {isPending ? <Spinner /> : null}
+                      Continue to App
+                    </Button>
+                    <p className="text-sm text-muted-foreground">
+                      {hasSavedProvider
+                        ? "At least one provider is ready."
+                        : "Save at least one API key to continue."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </main>
@@ -247,49 +309,53 @@ function AiProviderForm({
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FieldGroup>
-        <Controller
-          name="apiKey"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={inputId}>
-                {provider.label} API key
-                <a
-                  href={provider.keyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm underline text-muted-foreground inline-flex items-center gap-1"
-                >
-                  Get API key
-                  <HugeiconsIcon
-                    icon={ArrowUpRight01Icon}
-                    className="size-3.5"
-                  />
-                </a>
-                {isSaved ? <Badge variant="outline">Saved</Badge> : null}
-              </FieldLabel>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  {...field}
-                  id={inputId}
-                  type="password"
-                  aria-invalid={fieldState.invalid}
-                  placeholder={`Enter ${provider.label} API key`}
-                />
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? <Spinner /> : null}
-                  Save
-                </Button>
-              </div>
-              {fieldState.invalid ? (
-                <FieldError errors={[fieldState.error]} />
-              ) : null}
-            </Field>
-          )}
-        />
-      </FieldGroup>
-    </form>
+    <AccordionItem>
+      <AccordionTrigger className="hover:no-underline gap-2 cursor-pointer">
+        {provider.label} API key
+        <a
+          href={provider.keyUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-sm underline text-muted-foreground inline-flex items-center gap-1"
+        >
+          Get API key
+          <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3.5" />
+        </a>
+        {isSaved ? <Badge variant="outline">Saved</Badge> : null}
+      </AccordionTrigger>
+      <AccordionContent>
+        <form className="p-1" onSubmit={form.handleSubmit(onSubmit)}>
+          <FieldGroup>
+            <Controller
+              name="apiKey"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Input
+                      {...field}
+                      id={inputId}
+                      type="password"
+                      aria-invalid={fieldState.invalid}
+                      placeholder={`Enter ${provider.label} API key`}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={form.formState.isSubmitting}
+                    >
+                      {form.formState.isSubmitting ? <Spinner /> : null}
+                      Save
+                    </Button>
+                  </div>
+                  {fieldState.invalid ? (
+                    <FieldError errors={[fieldState.error]} />
+                  ) : null}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </form>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
