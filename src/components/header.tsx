@@ -13,6 +13,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AiMagicIcon,
   ArrowUpRight01Icon,
+  BubbleChatIcon,
   Link01Icon,
   Logout01Icon,
   Notion02Icon,
@@ -53,6 +54,16 @@ const Header = () => {
             <ThemeToggle />
             {session ? (
               <>
+                <Button
+                  nativeButton={false}
+                  className="justify-start text-muted-foreground"
+                  variant="ghost"
+                  render={<Link to="/app" />}
+                >
+                  <HugeiconsIcon icon={BubbleChatIcon} />
+                  <span>Chat</span>
+                </Button>
+
                 <Button
                   nativeButton={false}
                   className="justify-start text-muted-foreground"
