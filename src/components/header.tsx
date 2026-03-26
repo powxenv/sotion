@@ -68,7 +68,7 @@ const Header = () => {
                   nativeButton={false}
                   className="justify-start text-muted-foreground"
                   variant="ghost"
-                  render={<Link to="/" />}
+                  render={<Link to="/app/socials" />}
                 >
                   <HugeiconsIcon icon={Link01Icon} />
                   <span>Social Connections</span>

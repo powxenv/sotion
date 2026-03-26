@@ -15,6 +15,7 @@ import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as LayoutAppIndexRouteImport } from './routes/_layout.app.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as LayoutAppSocialsRouteImport } from './routes/_layout.app.socials'
 import { Route as LayoutAppProvidersRouteImport } from './routes/_layout.app.providers'
 import { Route as ApiIntegrationsNotionConnectRouteImport } from './routes/api/integrations/notion/connect'
 import { Route as ApiIntegrationsNotionCallbackRouteImport } from './routes/api/integrations/notion/callback'
@@ -48,6 +49,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LayoutAppSocialsRoute = LayoutAppSocialsRouteImport.update({
+  id: '/app/socials',
+  path: '/app/socials',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAppProvidersRoute = LayoutAppProvidersRouteImport.update({
   id: '/app/providers',
   path: '/app/providers',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/onboard/': typeof OnboardIndexRoute
   '/app/providers': typeof LayoutAppProvidersRoute
+  '/app/socials': typeof LayoutAppSocialsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app/': typeof LayoutAppIndexRoute
   '/api/integrations/notion/callback': typeof ApiIntegrationsNotionCallbackRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/onboard': typeof OnboardIndexRoute
   '/app/providers': typeof LayoutAppProvidersRoute
+  '/app/socials': typeof LayoutAppSocialsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/app': typeof LayoutAppIndexRoute
   '/api/integrations/notion/callback': typeof ApiIntegrationsNotionCallbackRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/onboard/': typeof OnboardIndexRoute
   '/_layout/app/providers': typeof LayoutAppProvidersRoute
+  '/_layout/app/socials': typeof LayoutAppSocialsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_layout/app/': typeof LayoutAppIndexRoute
   '/api/integrations/notion/callback': typeof ApiIntegrationsNotionCallbackRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/onboard/'
     | '/app/providers'
+    | '/app/socials'
     | '/api/auth/$'
     | '/app/'
     | '/api/integrations/notion/callback'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/onboard'
     | '/app/providers'
+    | '/app/socials'
     | '/api/auth/$'
     | '/app'
     | '/api/integrations/notion/callback'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/onboard/'
     | '/_layout/app/providers'
+    | '/_layout/app/socials'
     | '/api/auth/$'
     | '/_layout/app/'
     | '/api/integrations/notion/callback'
@@ -185,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_layout/app/socials': {
+      id: '/_layout/app/socials'
+      path: '/app/socials'
+      fullPath: '/app/socials'
+      preLoaderRoute: typeof LayoutAppSocialsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/app/providers': {
       id: '/_layout/app/providers'
       path: '/app/providers'
@@ -212,12 +231,14 @@ declare module '@tanstack/react-router' {
 interface LayoutRouteChildren {
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutAppProvidersRoute: typeof LayoutAppProvidersRoute
+  LayoutAppSocialsRoute: typeof LayoutAppSocialsRoute
   LayoutAppIndexRoute: typeof LayoutAppIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutAppProvidersRoute: LayoutAppProvidersRoute,
+  LayoutAppSocialsRoute: LayoutAppSocialsRoute,
   LayoutAppIndexRoute: LayoutAppIndexRoute,
 }
 
