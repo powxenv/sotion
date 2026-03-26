@@ -87,13 +87,13 @@ async function syncOnboardingState(userId: string) {
   const isConnected =
     connection?.status === "connected" && Boolean(connection.accessToken);
   const hasAiProvider = Boolean(await findAnyAiProviderSetting(userId));
+  const connectedAtTime = connection?.connectedAt?.getTime();
+  const workspaceConnectedAtTime = record.workspaceConnectedAt?.getTime();
   const hasFreshConnection =
     isConnected &&
-    Boolean(connection?.connectedAt) &&
-    (
-      !record.workspaceConnectedAt ||
-      connection.connectedAt.getTime() > record.workspaceConnectedAt.getTime()
-    );
+    connectedAtTime !== undefined &&
+    (workspaceConnectedAtTime === undefined ||
+      connectedAtTime > workspaceConnectedAtTime);
 
   const highestUnlockedStep = record.completedAt
     ? ONBOARDING_STEPS.completed

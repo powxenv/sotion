@@ -156,7 +156,9 @@ export const CHAT_MODEL_GROUPS = [
   },
 ] as const;
 
-export function findChatModelOption(value: string) {
+export type ChatModelOption = (typeof CHAT_MODEL_GROUPS)[number]["items"][number];
+
+export function findChatModelOption(value: string): ChatModelOption | null {
   for (const group of CHAT_MODEL_GROUPS) {
     for (const item of group.items) {
       if (item.value === value) {

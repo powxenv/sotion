@@ -31,6 +31,7 @@ import { getOnboardingStateOptions } from "#/services/onboarding/funcs";
 import { getSessionOptions } from "#/services/auth/funcs";
 import {
   CHAT_MODEL_GROUPS,
+  type ChatModelOption,
   findChatModelOption,
   getDefaultChatModelSelection,
 } from "#/lib/chat-models";
@@ -108,6 +109,10 @@ function App() {
 
     return defaultSelectedModel;
   }, [configuredProviders, defaultSelectedModel, selectedModelOverride]);
+  const selectedModelOption = useMemo<ChatModelOption | null>(
+    () => (selectedModel ? findChatModelOption(selectedModel) : null),
+    [selectedModel],
+  );
 
   const initialMessages = useMemo<ChatMessage[]>(() => {
     try {
@@ -266,12 +271,14 @@ function App() {
 
           <div className="flex items-center justify-between">
             <div className="flex gap-1">
-              <Combobox
+              <Combobox<ChatModelOption>
                 items={CHAT_MODEL_GROUPS}
                 disabled={!mcpStatus.connected}
-                value={selectedModel}
+                value={selectedModelOption}
+                itemToStringLabel={(item) => item.label}
+                itemToStringValue={(item) => item.value}
                 onValueChange={(value) =>
-                  setSelectedModelOverride(value ?? null)
+                  setSelectedModelOverride(value?.value ?? null)
                 }
               >
                 <ComboboxInput
@@ -301,7 +308,7 @@ function App() {
                           {(item) => (
                             <ComboboxItem
                               key={item.value}
-                              value={item.value}
+                              value={item}
                               disabled={
                                 !configuredProviders.has(item.providerId)
                               }
