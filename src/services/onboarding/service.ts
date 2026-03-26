@@ -12,6 +12,7 @@ import {
 export const ONBOARDING_STEPS = {
   connectWorkspace: "connect_workspace",
   setupAiProvider: "setup_ai_provider",
+  finish: "finish",
   completed: "completed",
 } as const;
 
@@ -26,6 +27,12 @@ export type OnboardingState = {
 };
 
 type OnboardingRecord = typeof onboardingState.$inferSelect;
+
+const EDITABLE_ONBOARDING_STEPS = [
+  ONBOARDING_STEPS.connectWorkspace,
+  ONBOARDING_STEPS.setupAiProvider,
+  ONBOARDING_STEPS.finish,
+] as const;
 
 async function ensureOnboardingState(userId: string) {
   const existing = await findOnboardingState(userId);
@@ -62,25 +69,47 @@ async function syncOnboardingState(userId: string) {
   const connection = await findConnectedNotionWorkspace(userId);
   const isConnected =
     connection?.status === "connected" && Boolean(connection.accessToken);
+  const hasAiProvider = Boolean(await findAnyAiProviderSetting(userId));
+
+  const highestUnlockedStep = record.completedAt
+    ? ONBOARDING_STEPS.completed
+    : hasAiProvider
+      ? ONBOARDING_STEPS.finish
+      : isConnected
+        ? ONBOARDING_STEPS.setupAiProvider
+        : ONBOARDING_STEPS.connectWorkspace;
 
   const nextStep = record.completedAt
     ? ONBOARDING_STEPS.completed
-    : isConnected
+    : record.currentStep === ONBOARDING_STEPS.connectWorkspace && isConnected
       ? ONBOARDING_STEPS.setupAiProvider
-      : ONBOARDING_STEPS.connectWorkspace;
+      : EDITABLE_ONBOARDING_STEPS.includes(
+            record.currentStep as (typeof EDITABLE_ONBOARDING_STEPS)[number],
+          ) &&
+            EDITABLE_ONBOARDING_STEPS.indexOf(
+              record.currentStep as (typeof EDITABLE_ONBOARDING_STEPS)[number],
+            ) <=
+              EDITABLE_ONBOARDING_STEPS.indexOf(
+                highestUnlockedStep as (typeof EDITABLE_ONBOARDING_STEPS)[number],
+              )
+        ? record.currentStep
+        : highestUnlockedStep;
 
   const workspaceConnectedAt =
     record.workspaceConnectedAt ?? connection?.connectedAt ?? null;
+  const aiProviderSetupAt = record.aiProviderSetupAt ?? (hasAiProvider ? new Date() : null);
 
   if (
     record.currentStep !== nextStep ||
-    record.workspaceConnectedAt?.getTime() !== workspaceConnectedAt?.getTime()
+    record.workspaceConnectedAt?.getTime() !== workspaceConnectedAt?.getTime() ||
+    record.aiProviderSetupAt?.getTime() !== aiProviderSetupAt?.getTime()
   ) {
     const [updated] = await db
       .update(onboardingState)
       .set({
         currentStep: nextStep,
         workspaceConnectedAt,
+        aiProviderSetupAt,
         updatedAt: new Date(),
       })
       .where(eq(onboardingState.id, record.id))
@@ -126,6 +155,49 @@ export async function completeOnboardingForRequest(
       updatedAt: now,
     })
     .where(eq(onboardingState.id, synced.id))
+    .returning();
+
+  return toState(updated);
+}
+
+export async function setOnboardingStepForRequest(args: {
+  request: Request;
+  step: OnboardingStep;
+}): Promise<OnboardingState> {
+  const session = await requireSession(args.request);
+  const synced = await syncOnboardingState(session.user.id);
+
+  if (synced.completedAt) {
+    return toState(synced);
+  }
+
+  if (!EDITABLE_ONBOARDING_STEPS.includes(args.step as (typeof EDITABLE_ONBOARDING_STEPS)[number])) {
+    throw new Response("Invalid onboarding step.", { status: 400 });
+  }
+
+  const hasConnectedWorkspace = Boolean(synced.workspaceConnectedAt);
+  const hasAiProvider = Boolean(synced.aiProviderSetupAt);
+
+  if (
+    args.step === ONBOARDING_STEPS.setupAiProvider &&
+    !hasConnectedWorkspace
+  ) {
+    throw new Response("Workspace must be connected first.", { status: 400 });
+  }
+
+  if (args.step === ONBOARDING_STEPS.finish && !hasAiProvider) {
+    throw new Response("At least one AI provider API key is required.", {
+      status: 400,
+    });
+  }
+
+  const [updated] = await db
+    .update(onboardingState)
+    .set({
+      currentStep: args.step,
+      updatedAt: new Date(),
+    })
+    .where(eq(onboardingState.userId, session.user.id))
     .returning();
 
   return toState(updated);

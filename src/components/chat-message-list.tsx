@@ -5,14 +5,21 @@ import {
   isReasoningUIPart,
   isToolUIPart,
   type ChatStatus,
-  type UIMessage,
-  type UIMessagePart,
 } from "ai";
 import { Streamdown } from "streamdown";
 import { Spinner } from "#/components/ui/spinner";
 import { cn } from "#/lib/utils";
+import type { ChatMessage, ChatMessagePart } from "#/services/chat/agent";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Idea01Icon, Wrench01Icon } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 
-function toJson(value: unknown) {
+function toJson<T>(value: T) {
   return JSON.stringify(value, null, 2);
 }
 
@@ -43,10 +50,10 @@ function MessagePart({
   part,
   isStreaming,
 }: {
-  part: UIMessagePart<never, never>;
+  part: ChatMessagePart;
   isStreaming: boolean;
 }) {
-  if (part.type === "text") {
+  if (part.type === "text" && part.text.trim() !== "") {
     return (
       <MessageMarkdown
         className="text-inherit"
@@ -59,61 +66,70 @@ function MessagePart({
 
   if (isReasoningUIPart(part)) {
     return (
-      <div className="rounded-xl border border-dashed p-4">
-        <p className="mb-2 text-xs font-medium text-muted-foreground">
-          Reasoning
-        </p>
-        <MessageMarkdown
-          className="text-muted-foreground"
-          isAnimating={isStreaming && part.state !== "done"}
-        >
-          {part.text}
-        </MessageMarkdown>
-      </div>
+      <Accordion>
+        <AccordionItem value="reasoning">
+          <AccordionTrigger className="flex items-center gap-1">
+            <HugeiconsIcon className="size-4" icon={Idea01Icon} />
+            Reasoning
+          </AccordionTrigger>
+          <AccordionContent>
+            <MessageMarkdown
+              className="text-muted-foreground"
+              isAnimating={isStreaming && part.state !== "done"}
+            >
+              {part.text}
+            </MessageMarkdown>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     );
   }
 
   if (isToolUIPart(part)) {
     return (
-      <div className="rounded-xl border bg-background/70 px-3 py-3">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-medium">{getToolName(part)}</p>
-          <p className="text-xs text-muted-foreground">{part.state}</p>
-        </div>
-        {"input" in part && part.input !== undefined ? (
-          <div className="mt-3">
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Input
-            </p>
-            <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
-              {toJson(part.input)}
-            </pre>
-          </div>
-        ) : null}
-        {"output" in part && part.output !== undefined ? (
-          <div className="mt-3">
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Output
-            </p>
-            <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
-              {toJson(part.output)}
-            </pre>
-          </div>
-        ) : null}
-        {"errorText" in part && part.errorText ? (
-          <p className="mt-3 text-sm text-destructive">{part.errorText}</p>
-        ) : null}
-        {"approval" in part && part.approval ? (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Approval:{" "}
-            {"approved" in part.approval
-              ? part.approval.approved
-                ? "approved"
-                : "denied"
-              : "requested"}
-          </p>
-        ) : null}
-      </div>
+      <Accordion>
+        <AccordionItem value="tool">
+          <AccordionTrigger className="flex items-center gap-1">
+            <HugeiconsIcon className="size-4" icon={Wrench01Icon} />
+            Calling {getToolName(part)}
+          </AccordionTrigger>
+          <AccordionContent>
+            {"input" in part && part.input !== undefined ? (
+              <div className="mt-3">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Input
+                </p>
+                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
+                  {toJson(part.input)}
+                </pre>
+              </div>
+            ) : null}
+            {"output" in part && part.output !== undefined ? (
+              <div className="mt-3">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Output
+                </p>
+                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
+                  {toJson(part.output)}
+                </pre>
+              </div>
+            ) : null}
+            {"errorText" in part && part.errorText ? (
+              <p className="mt-3 text-sm text-destructive">{part.errorText}</p>
+            ) : null}
+            {"approval" in part && part.approval ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Approval:{" "}
+                {"approved" in part.approval
+                  ? part.approval.approved
+                    ? "approved"
+                    : "denied"
+                  : "requested"}
+              </p>
+            ) : null}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     );
   }
 
@@ -178,6 +194,8 @@ function MessagePart({
       </div>
     );
   }
+
+  return null;
 }
 
 export default function ChatMessageList({
@@ -185,27 +203,26 @@ export default function ChatMessageList({
   status,
   error,
 }: {
-  messages: UIMessage[];
+  messages: ChatMessage[];
   status: ChatStatus;
   error?: Error;
 }) {
   return (
-    <div className="mx-auto w-full max-w-3xl flex flex-col gap-4 pb-38">
+    <div className="mx-auto w-full max-w-3xl flex flex-col gap-4 pb-50">
       {messages.map((message) => (
         <div
           key={message.id}
           className={cn(
-            "max-w-[90%] rounded-xl",
             message.role === "user"
-              ? "ml-auto bg-primary text-primary-foreground text-sm min-h-9 px-4 py-2.5"
+              ? "ml-auto bg-primary text-primary-foreground text-sm min-h-9 px-4 py-2.5 rounded-xl"
               : "",
           )}
         >
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col">
             {message.parts.map((part, index) => (
               <MessagePart
                 key={`${message.id}-${part.type}-${index}`}
-                part={part as UIMessagePart<never, never>}
+                part={part}
                 isStreaming={status === "streaming" || status === "submitted"}
               />
             ))}

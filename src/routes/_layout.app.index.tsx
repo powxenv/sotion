@@ -24,6 +24,7 @@ import {
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { listAiProviderSettingsOptions } from "#/services/ai-provider-settings/funcs";
+import type { ChatMessage } from "#/services/chat/agent";
 import { getCurrentChatOptions } from "#/services/chat/funcs";
 import { getNotionMcpStatusOptions } from "#/services/notion-mcp/funcs";
 import { getOnboardingStateOptions } from "#/services/onboarding/funcs";
@@ -90,9 +91,9 @@ function App() {
     () => getDefaultChatModelSelection(configuredProviders),
     [configuredProviders],
   );
-  const [selectedModelOverride, setSelectedModelOverride] = useState<string | null>(
-    null,
-  );
+  const [selectedModelOverride, setSelectedModelOverride] = useState<
+    string | null
+  >(null);
   const selectedModel = useMemo(() => {
     if (selectedModelOverride) {
       const modelOption = findChatModelOption(selectedModelOverride);
@@ -104,14 +105,16 @@ function App() {
 
     return defaultSelectedModel;
   }, [configuredProviders, defaultSelectedModel, selectedModelOverride]);
-  const initialMessages = useMemo(() => {
+
+  const initialMessages = useMemo<ChatMessage[]>(() => {
     try {
       return JSON.parse(currentChat.messagesJson);
     } catch {
       return [];
     }
   }, [currentChat.messagesJson]);
-  const { messages, sendMessage, status, error } = useChat({
+
+  const { messages, sendMessage, status, error } = useChat<ChatMessage>({
     id: currentChat.id,
     messages: initialMessages,
     transport: chatTransport,
@@ -214,7 +217,9 @@ function App() {
                 items={CHAT_MODEL_GROUPS}
                 disabled={!mcpStatus.connected}
                 value={selectedModel}
-                onValueChange={(value) => setSelectedModelOverride(value ?? null)}
+                onValueChange={(value) =>
+                  setSelectedModelOverride(value ?? null)
+                }
               >
                 <ComboboxInput
                   disabled={!mcpStatus.connected}

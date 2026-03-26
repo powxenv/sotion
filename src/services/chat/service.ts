@@ -1,5 +1,6 @@
-import { generateId, type UIMessage, validateUIMessages } from "ai";
+import { generateId, validateUIMessages } from "ai";
 import { requireSession } from "#/services/auth/session";
+import type { ChatMessage } from "#/services/chat/agent";
 import {
   createChatRow,
   findChatRow,
@@ -13,7 +14,7 @@ export async function getCurrentChatForRequest(request: Request) {
 
   if (existing) {
     try {
-      await validateUIMessages<UIMessage<{}>>({
+      await validateUIMessages<ChatMessage>({
         messages: JSON.parse(existing.messages),
       });
 
@@ -42,7 +43,7 @@ export async function getCurrentChatForRequest(request: Request) {
 export async function saveChatForRequest(args: {
   request: Request;
   chatId: string;
-  messages: UIMessage[];
+  messages: ChatMessage[];
 }): Promise<void> {
   const session = await requireSession(args.request);
   const existing = await findChatRow(args.chatId, session.user.id);
