@@ -20,6 +20,7 @@ const socialConnectionsSearchSchema = z.object({
   provider: z.string().optional(),
   status: z.enum(["linked", "error"]).optional(),
   error: z.string().optional(),
+  error_description: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_layout/app/socials")({
@@ -88,6 +89,7 @@ function getSearchFeedback(search: {
   provider?: string;
   status?: "linked" | "error";
   error?: string;
+  error_description?: string;
 }): SocialConnectionsSearchFeedback | null {
   if (
     search.status !== "error" ||
@@ -98,27 +100,66 @@ function getSearchFeedback(search: {
   }
 
   const provider = getSocialConnectionProvider(search.provider);
+  const title = `Could not connect ${provider.label}`;
+  const errorCode = search.error?.trim().toLowerCase() ?? null;
+  const errorDescription = search.error_description?.trim();
+  let description: string;
 
-  if (
-    search.error &&
-    search.error.includes("account_already_linked_to_different_user")
-  ) {
-    return {
-      providerId: search.provider,
-      notice: {
-        title: `Could not connect ${provider.label}`,
-        description:
-          "That social account is already linked to another user in this project.",
-      },
-    };
+  switch (errorCode) {
+    case "email_doesn't_match":
+    case "email_doesnt_match":
+    case "email_mismatch":
+      description = "This account uses a different email.";
+      break;
+    case "account_already_linked_to_different_user":
+    case "social_account_already_linked":
+    case "linked_account_already_exists":
+      description = "This account is already connected to another user.";
+      break;
+    case "unable_to_link_account":
+      description = "This account could not be connected right now. Please try again.";
+      break;
+    case "email_not_found":
+    case "email_is_missing":
+    case "user_email_not_found":
+      description = "We could not get an email from this account.";
+      break;
+    case "unable_to_get_user_info":
+    case "user_info_is_missing":
+    case "failed_to_get_user_info":
+      description = "We could not read this account. Please try again.";
+      break;
+    case "invalid_code":
+    case "oauth_code_verification_failed":
+    case "no_code":
+      description = "The connection session expired. Please try again.";
+      break;
+    case "oauth_provider_not_found":
+    case "provider_not_found":
+      description = "This service is not available right now.";
+      break;
+    case "no_callback_url":
+    case "invalid_callback_url":
+    case "invalid_error_callback_url":
+      description = "There is a connection setup problem.";
+      break;
+    case "access_denied":
+      description = "The connection was canceled before it finished.";
+      break;
+    default:
+      description =
+        errorDescription && errorDescription.length > 0
+          ? errorDescription
+          : errorCode
+            ? "This account could not be connected. Please try again."
+            : "This account could not be connected. Please try again.";
   }
 
   return {
     providerId: search.provider,
     notice: {
-      title: `Could not connect ${provider.label}`,
-      description:
-        "The provider did not complete the linking flow. Try again after checking the provider consent screen and callback URL settings.",
+      title,
+      description,
     },
   };
 }
