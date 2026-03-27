@@ -66,7 +66,7 @@ export const listSocialConnections = createServerFn({ method: "GET" }).handler(
           connectedAt: row?.createdAt.toISOString() ?? null,
           scopes: row?.scope
             ? row.scope
-                .split(",")
+                .split(/[,\s]+/)
                 .map((scope) => scope.trim())
                 .filter(Boolean)
             : [],

@@ -97,6 +97,61 @@ export async function getSocialConnectionProfile(args: {
           imageUrl: profile.picture ?? null,
         };
       }
+      case "facebook": {
+        const response = await fetch(
+          "https://graph.facebook.com/me?fields=id,name,picture",
+          {
+            headers: {
+              Authorization: `Bearer ${args.accessToken}`,
+            },
+          },
+        );
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const profile = (await response.json()) as {
+          name?: string;
+          picture?: {
+            data?: {
+              url?: string;
+            };
+          };
+        };
+
+        return {
+          displayName: profile.name ?? null,
+          handle: null,
+          imageUrl: profile.picture?.data?.url ?? null,
+        };
+      }
+      case "instagram": {
+        const profileUrl = new URL("https://graph.instagram.com/me");
+        profileUrl.searchParams.set(
+          "fields",
+          "user_id,username,name,profile_picture_url",
+        );
+        profileUrl.searchParams.set("access_token", args.accessToken);
+
+        const response = await fetch(profileUrl);
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const profile = (await response.json()) as {
+          username?: string;
+          name?: string;
+          profile_picture_url?: string;
+        };
+
+        return {
+          displayName: profile.name ?? profile.username ?? null,
+          handle: profile.username ? `@${profile.username}` : null,
+          imageUrl: profile.profile_picture_url ?? null,
+        };
+      }
       case "threads": {
         const profileUrl = new URL("https://graph.threads.net/v1.0/me");
         profileUrl.searchParams.set(
@@ -123,6 +178,41 @@ export async function getSocialConnectionProfile(args: {
           imageUrl: profile.threads_profile_picture_url ?? null,
         };
       }
+      case "tiktok": {
+        const response = await fetch(
+          "https://open.tiktokapis.com/v2/user/info/?fields=open_id,avatar_large_url,display_name,username",
+          {
+            headers: {
+              Authorization: `Bearer ${args.accessToken}`,
+            },
+          },
+        );
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const profile = (await response.json()) as {
+          data?: {
+            user?: {
+              display_name?: string;
+              username?: string;
+              avatar_large_url?: string;
+            };
+          };
+        };
+
+        return {
+          displayName:
+            profile.data?.user?.display_name ?? profile.data?.user?.username ?? null,
+          handle: profile.data?.user?.username
+            ? `@${profile.data.user.username}`
+            : null,
+          imageUrl: profile.data?.user?.avatar_large_url ?? null,
+        };
+      }
+      default:
+        return null;
     }
   } catch {
     return null;

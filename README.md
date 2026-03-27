@@ -67,6 +67,38 @@ console.log(env.VITE_APP_TITLE);
 
 2. Visit the [Better Auth documentation](https://www.better-auth.com) to unlock the full potential of authentication in your app.
 
+### Social Publishing Providers
+
+To enable the linked publishing accounts used by `/socials`, add these server
+environment variables to `.env.local`:
+
+```bash
+FACEBOOK_CLIENT_ID=
+FACEBOOK_CLIENT_SECRET=
+INSTAGRAM_CLIENT_ID=
+INSTAGRAM_CLIENT_SECRET=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+THREADS_CLIENT_ID=
+THREADS_CLIENT_SECRET=
+TIKTOK_CLIENT_KEY=
+TIKTOK_CLIENT_SECRET=
+X_CLIENT_ID=
+X_CLIENT_SECRET=
+```
+
+Register these callback URLs in the provider dashboards using your Better Auth
+base URL:
+
+```text
+/api/auth/callback/twitter
+/api/auth/callback/linkedin
+/api/auth/callback/facebook
+/api/auth/callback/tiktok
+/api/auth/oauth2/callback/instagram
+/api/auth/oauth2/callback/threads
+```
+
 ### Adding a Database (Optional)
 
 Better Auth can work in stateless mode, but to persist user data, add a database:

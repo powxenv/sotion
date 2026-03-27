@@ -1,10 +1,8 @@
 import { formatDistanceToNow } from "date-fns";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, useTransition } from "react";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useState } from "react";
 import { z } from "zod";
-import { Alert, AlertAction, AlertDescription, AlertTitle } from "#/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Button } from "#/components/ui/button";
 import { Spinner } from "#/components/ui/spinner";
 import { authClient } from "#/lib/auth-client";
@@ -22,17 +20,6 @@ const socialConnectionsSearchSchema = z.object({
   status: z.enum(["linked", "error"]).optional(),
   error: z.string().optional(),
 });
-
-function getProviderTone(providerId: SocialConnectionProviderId) {
-  switch (providerId) {
-    case "twitter":
-      return "bg-foreground text-background";
-    case "linkedin":
-      return "bg-sky-600 text-white";
-    case "threads":
-      return "bg-muted text-foreground";
-  }
-}
 
 export const Route = createFileRoute("/_layout/app/socials")({
   validateSearch: (search) => socialConnectionsSearchSchema.parse(search),
@@ -57,77 +44,233 @@ export const Route = createFileRoute("/_layout/app/socials")({
   component: SocialConnectionsPage,
 });
 
-function SocialConnectionsPage() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const search = Route.useSearch();
-  const { data: connections } = useSuspenseQuery(listSocialConnectionsOptions());
-  const [isConnecting, startConnect] = useTransition();
-  const [connectingProviderId, setConnectingProviderId] =
-    useState<SocialConnectionProviderId | null>(null);
-  const [isDisconnecting, startDisconnect] = useTransition();
-  const [disconnectingProviderId, setDisconnectingProviderId] =
-    useState<SocialConnectionProviderId | null>(null);
-  const [localNotice, setLocalNotice] = useState<{
-    title: string;
-    description: string;
-    variant: "default" | "destructive";
-  } | null>(null);
+type SocialConnectionsNotice = {
+  title: string;
+  description: string;
+};
 
-  const searchNotice = useMemo(() => {
-    if (
-      !search.status ||
-      !search.provider ||
-      !isSocialConnectionProviderId(search.provider)
-    ) {
-      return null;
-    }
+type SocialConnectionsSearchFeedback = {
+  providerId: SocialConnectionProviderId;
+  notice: SocialConnectionsNotice;
+};
 
-    const provider = getSocialConnectionProvider(search.provider);
+type PendingAction = "idle" | "connecting" | "disconnecting";
 
-    if (search.status === "linked") {
-      return {
-        title: `${provider.label} connected`,
-        description: `The ${provider.label} account is now linked to your current Sotion account.`,
-        variant: "default" as const,
-      };
-    }
+type SocialConnectionViewModel = {
+  providerId: SocialConnectionProviderId;
+  isConnected: boolean;
+  accountId: string | null;
+  connectedAt: string | null;
+  scopes: string[];
+  displayName: string | null;
+  handle: string | null;
+  imageUrl: string | null;
+};
 
-    if (
-      search.error &&
-      search.error.includes("account_already_linked_to_different_user")
-    ) {
-      return {
+function createRedirectUrl(
+  providerId: SocialConnectionProviderId,
+  status: "linked" | "error",
+  error?: string,
+) {
+  const url = new URL("/app/socials", window.location.origin);
+  url.searchParams.set("provider", providerId);
+  url.searchParams.set("status", status);
+
+  if (error) {
+    url.searchParams.set("error", error);
+  }
+
+  return url.toString();
+}
+
+function getSearchFeedback(search: {
+  provider?: string;
+  status?: "linked" | "error";
+  error?: string;
+}): SocialConnectionsSearchFeedback | null {
+  if (
+    search.status !== "error" ||
+    !search.provider ||
+    !isSocialConnectionProviderId(search.provider)
+  ) {
+    return null;
+  }
+
+  const provider = getSocialConnectionProvider(search.provider);
+
+  if (
+    search.error &&
+    search.error.includes("account_already_linked_to_different_user")
+  ) {
+    return {
+      providerId: search.provider,
+      notice: {
         title: `Could not connect ${provider.label}`,
         description:
           "That social account is already linked to another user in this project.",
-        variant: "destructive" as const,
-      };
-    }
+      },
+    };
+  }
 
-    return {
+  return {
+    providerId: search.provider,
+    notice: {
       title: `Could not connect ${provider.label}`,
       description:
         "The provider did not complete the linking flow. Try again after checking the provider consent screen and callback URL settings.",
-      variant: "destructive" as const,
-    };
-  }, [search.error, search.provider, search.status]);
-
-  const createRedirectUrl = (
-    providerId: SocialConnectionProviderId,
-    status: "linked" | "error",
-    error?: string,
-  ) => {
-    const url = new URL("/app/socials", window.location.origin);
-    url.searchParams.set("provider", providerId);
-    url.searchParams.set("status", status);
-
-    if (error) {
-      url.searchParams.set("error", error);
-    }
-
-    return url.toString();
+    },
   };
+}
+
+function SocialConnectionCard(props: {
+  connection: SocialConnectionViewModel;
+  initialFeedback?: SocialConnectionsNotice | null;
+}) {
+  const queryClient = useQueryClient();
+  const provider = getSocialConnectionProvider(props.connection.providerId);
+  const [pendingAction, setPendingAction] = useState<PendingAction>("idle");
+  const [feedback, setFeedback] = useState<SocialConnectionsNotice | null>(
+    props.initialFeedback ?? null,
+  );
+
+  const connectedName =
+    props.connection.displayName ||
+    props.connection.handle ||
+    props.connection.accountId ||
+    null;
+  const linkedAtLabel = props.connection.connectedAt
+    ? formatDistanceToNow(new Date(props.connection.connectedAt), {
+        addSuffix: true,
+      })
+    : null;
+  const isPending = pendingAction !== "idle";
+
+  const connectAccount = async () => {
+    setFeedback(null);
+    setPendingAction("connecting");
+
+    try {
+      const callbackURL = createRedirectUrl(provider.id, "linked");
+      const errorCallbackURL = createRedirectUrl(provider.id, "error");
+
+      if (provider.providerType === "oauth2") {
+        await authClient.oauth2.link({
+          providerId: provider.id,
+          callbackURL,
+          errorCallbackURL,
+        });
+      } else {
+        await authClient.linkSocial({
+          provider: provider.id,
+          callbackURL,
+          errorCallbackURL,
+        });
+      }
+    } catch (error) {
+      setFeedback({
+        title: `Could not connect ${provider.label}`,
+        description:
+          error instanceof Error
+            ? error.message
+            : "The provider could not start the linking flow.",
+      });
+      setPendingAction("idle");
+    }
+  };
+
+  const disconnectAccount = async () => {
+    setFeedback(null);
+    setPendingAction("disconnecting");
+
+    try {
+      await authClient.unlinkAccount({
+        providerId: provider.id,
+        accountId: props.connection.accountId ?? undefined,
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ["social-connections"],
+      });
+    } catch {
+      setFeedback({
+        title: `Could not disconnect ${provider.label}`,
+        description: "The linked account could not be removed. Try again.",
+      });
+    } finally {
+      setPendingAction("idle");
+    }
+  };
+
+  return (
+    <section className="space-y-4">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-background p-2">
+          <img
+            src={provider.logoPath}
+            alt={provider.label}
+            className="size-full object-contain"
+          />
+        </div>
+
+        <div className="min-w-0 flex-1 space-y-1">
+          <h2 className="text-lg font-semibold">{provider.label}</h2>
+
+          {props.connection.isConnected ? (
+            <div className="space-y-1 text-sm">
+              <p className="font-medium">{connectedName ?? "Connected account"}</p>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground">
+                {props.connection.handle &&
+                props.connection.handle !== connectedName ? (
+                  <span>{props.connection.handle}</span>
+                ) : null}
+                {linkedAtLabel ? <span>Linked {linkedAtLabel}</span> : null}
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No account connected.
+            </p>
+          )}
+
+          {feedback ? (
+            <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              <p className="font-medium">{feedback.title}</p>
+              <p>{feedback.description}</p>
+            </div>
+          ) : null}
+
+          <div>
+            {props.connection.isConnected ? (
+              <Button
+                variant="outline"
+                disabled={isPending}
+                onClick={disconnectAccount}
+              >
+                {pendingAction === "disconnecting" ? <Spinner /> : null}
+                Disconnect
+              </Button>
+            ) : (
+              <Button
+                disabled={isPending}
+                onClick={connectAccount}
+              >
+                {pendingAction === "connecting" ? <Spinner /> : null}
+                Connect
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function SocialConnectionsPage() {
+  const search = Route.useSearch();
+  const { data: connections } = useSuspenseQuery(
+    listSocialConnectionsOptions(),
+  );
+  const searchFeedback = getSearchFeedback(search);
 
   return (
     <main className="py-10">
@@ -142,204 +285,18 @@ function SocialConnectionsPage() {
             </p>
           </div>
 
-          {searchNotice ? (
-            <Alert variant={searchNotice.variant}>
-              <div>
-                <AlertTitle>{searchNotice.title}</AlertTitle>
-                <AlertDescription>{searchNotice.description}</AlertDescription>
-              </div>
-              <AlertAction>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    navigate({
-                      to: "/app/socials",
-                      search: {},
-                      replace: true,
-                    })
-                  }
-                >
-                  Dismiss
-                </Button>
-              </AlertAction>
-            </Alert>
-          ) : null}
-
-          {localNotice ? (
-            <Alert variant={localNotice.variant}>
-              <div>
-                <AlertTitle>{localNotice.title}</AlertTitle>
-                <AlertDescription>{localNotice.description}</AlertDescription>
-              </div>
-            </Alert>
-          ) : null}
-
           <div className="grid gap-8 lg:grid-cols-3">
             {connections.map((connection) => {
-              const provider = getSocialConnectionProvider(connection.providerId);
-              const connectedName =
-                connection.displayName ||
-                connection.handle ||
-                connection.accountId ||
-                null;
-              const linkedAtLabel = connection.connectedAt
-                ? formatDistanceToNow(new Date(connection.connectedAt), {
-                    addSuffix: true,
-                  })
-                : null;
-
               return (
-                <section key={provider.id} className="space-y-4">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <Avatar className="size-10 border">
-                      <AvatarImage
-                        src={connection.imageUrl ?? ""}
-                        alt={provider.label}
-                      />
-                      <AvatarFallback
-                        className={getProviderTone(provider.id)}
-                      >
-                        {provider.initials}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <div className="space-y-1">
-                        <h2 className="text-lg font-semibold">
-                          {provider.label}
-                        </h2>
-                      </div>
-
-                      {connection.isConnected ? (
-                        <div className="space-y-1 text-sm">
-                          <p className="font-medium">
-                            {connectedName ?? "Connected account"}
-                          </p>
-                          <div className="flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground">
-                            {connection.handle &&
-                            connection.handle !== connectedName ? (
-                              <span>{connection.handle}</span>
-                            ) : null}
-                            {linkedAtLabel ? (
-                              <span>Linked {linkedAtLabel}</span>
-                            ) : null}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          No account connected.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    {connection.isConnected ? (
-                      <Button
-                        variant="outline"
-                        disabled={
-                          (isConnecting &&
-                            connectingProviderId === provider.id) ||
-                          isDisconnecting &&
-                          disconnectingProviderId === provider.id
-                        }
-                        onClick={() => {
-                          setLocalNotice(null);
-                          setDisconnectingProviderId(provider.id);
-
-                          startDisconnect(async () => {
-                            try {
-                              await authClient.unlinkAccount({
-                                providerId: provider.id,
-                                accountId: connection.accountId ?? undefined,
-                              });
-
-                              await queryClient.invalidateQueries({
-                                queryKey: ["social-connections"],
-                              });
-
-                              setLocalNotice({
-                                title: `${provider.label} disconnected`,
-                                description: `The linked ${provider.label} account has been removed from your Sotion account.`,
-                                variant: "default",
-                              });
-                            } catch {
-                              setLocalNotice({
-                                title: `Could not disconnect ${provider.label}`,
-                                description:
-                                  "The linked account could not be removed. Try again.",
-                                variant: "destructive",
-                              });
-                            } finally {
-                              setDisconnectingProviderId(null);
-                            }
-                          });
-                        }}
-                      >
-                        {isDisconnecting &&
-                        disconnectingProviderId === provider.id ? (
-                          <Spinner />
-                        ) : null}
-                        Disconnect
-                      </Button>
-                    ) : (
-                      <Button
-                        disabled={
-                          isConnecting &&
-                          connectingProviderId === provider.id
-                        }
-                        onClick={() => {
-                          setLocalNotice(null);
-                          setConnectingProviderId(provider.id);
-
-                          startConnect(async () => {
-                            try {
-                              const callbackURL = createRedirectUrl(
-                                provider.id,
-                                "linked",
-                              );
-                              const errorCallbackURL = createRedirectUrl(
-                                provider.id,
-                                "error",
-                              );
-
-                              if (provider.providerType === "oauth2") {
-                                await authClient.oauth2.link({
-                                  providerId: provider.id,
-                                  callbackURL,
-                                  errorCallbackURL,
-                                });
-                              } else {
-                                await authClient.linkSocial({
-                                  provider: provider.id,
-                                  callbackURL,
-                                  errorCallbackURL,
-                                });
-                              }
-                            } catch (error) {
-                              setConnectingProviderId(null);
-                              setLocalNotice({
-                                title: `Could not connect ${provider.label}`,
-                                description:
-                                  error instanceof Error
-                                    ? error.message
-                                    : "The provider could not start the linking flow.",
-                                variant: "destructive",
-                              });
-                            }
-                          });
-                        }}
-                      >
-                        {isConnecting &&
-                        connectingProviderId === provider.id ? (
-                          <Spinner />
-                        ) : null}
-                        Connect
-                      </Button>
-                    )}
-                  </div>
-                </section>
+                <SocialConnectionCard
+                  key={connection.providerId}
+                  connection={connection}
+                  initialFeedback={
+                    searchFeedback?.providerId === connection.providerId
+                      ? searchFeedback.notice
+                      : null
+                  }
+                />
               );
             })}
           </div>

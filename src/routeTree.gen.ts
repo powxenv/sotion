@@ -13,6 +13,8 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as OnboardIndexRouteImport } from './routes/onboard.index'
 import { Route as LayoutIndexRouteImport } from './routes/_layout.index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as LayoutTermsRouteImport } from './routes/_layout.terms'
+import { Route as LayoutPrivacyRouteImport } from './routes/_layout.privacy'
 import { Route as LayoutAppIndexRouteImport } from './routes/_layout.app.index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as LayoutAppSocialsRouteImport } from './routes/_layout.app.socials'
@@ -38,6 +40,16 @@ const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutTermsRoute = LayoutTermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPrivacyRoute = LayoutPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutAppIndexRoute = LayoutAppIndexRouteImport.update({
   id: '/app/',
@@ -74,6 +86,8 @@ const ApiIntegrationsNotionCallbackRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/privacy': typeof LayoutPrivacyRoute
+  '/terms': typeof LayoutTermsRoute
   '/api/chat': typeof ApiChatRoute
   '/onboard/': typeof OnboardIndexRoute
   '/app/providers': typeof LayoutAppProvidersRoute
@@ -84,6 +98,8 @@ export interface FileRoutesByFullPath {
   '/api/integrations/notion/connect': typeof ApiIntegrationsNotionConnectRoute
 }
 export interface FileRoutesByTo {
+  '/privacy': typeof LayoutPrivacyRoute
+  '/terms': typeof LayoutTermsRoute
   '/api/chat': typeof ApiChatRoute
   '/': typeof LayoutIndexRoute
   '/onboard': typeof OnboardIndexRoute
@@ -97,6 +113,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
+  '/_layout/privacy': typeof LayoutPrivacyRoute
+  '/_layout/terms': typeof LayoutTermsRoute
   '/api/chat': typeof ApiChatRoute
   '/_layout/': typeof LayoutIndexRoute
   '/onboard/': typeof OnboardIndexRoute
@@ -111,6 +129,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/privacy'
+    | '/terms'
     | '/api/chat'
     | '/onboard/'
     | '/app/providers'
@@ -121,6 +141,8 @@ export interface FileRouteTypes {
     | '/api/integrations/notion/connect'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/privacy'
+    | '/terms'
     | '/api/chat'
     | '/'
     | '/onboard'
@@ -133,6 +155,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
+    | '/_layout/privacy'
+    | '/_layout/terms'
     | '/api/chat'
     | '/_layout/'
     | '/onboard/'
@@ -183,6 +207,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_layout/terms': {
+      id: '/_layout/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof LayoutTermsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/privacy': {
+      id: '/_layout/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof LayoutPrivacyRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/app/': {
       id: '/_layout/app/'
       path: '/app'
@@ -229,6 +267,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface LayoutRouteChildren {
+  LayoutPrivacyRoute: typeof LayoutPrivacyRoute
+  LayoutTermsRoute: typeof LayoutTermsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutAppProvidersRoute: typeof LayoutAppProvidersRoute
   LayoutAppSocialsRoute: typeof LayoutAppSocialsRoute
@@ -236,6 +276,8 @@ interface LayoutRouteChildren {
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutPrivacyRoute: LayoutPrivacyRoute,
+  LayoutTermsRoute: LayoutTermsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutAppProvidersRoute: LayoutAppProvidersRoute,
   LayoutAppSocialsRoute: LayoutAppSocialsRoute,

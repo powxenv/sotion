@@ -18,10 +18,10 @@ export const Route = createFileRoute("/_layout/")({
 function RouteComponent() {
   return (
     <>
-      <main className="py-20 h-[calc(100lvh-57px)]">
+      <main className="min-h-[calc(100lvh-57px)] py-20">
         <div className="inner">
-          <div className="max-w-lg mx-auto flex flex-col items-center">
-            <h1 className="text-5xl font-bold mb-2">Meet the night shift.</h1>
+          <div className="mx-auto flex max-w-lg flex-col items-center">
+            <h1 className="mb-2 text-5xl font-bold">Meet the night shift.</h1>
             <p className="mt-2 mb-4">
               Notion agents keep work moving 24/7. They capture knowledge,
               answer questions, and push projects forward—all while you sleep.
@@ -36,7 +36,7 @@ function RouteComponent() {
           </div>
 
           <img
-            className="w-full border mt-12 rounded-lg shadow-2xl shadow-black/6"
+            className="mt-12 w-full rounded-lg border shadow-2xl shadow-black/6"
             src="/demo.png"
             alt="Demo Image"
           />
