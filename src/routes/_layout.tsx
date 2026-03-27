@@ -1,4 +1,5 @@
 import Header from "#/components/header";
+import { SiteFooter } from "#/components/site-footer";
 import { getSessionOptions } from "#/services/auth/funcs";
 import { getNotionMcpStatusOptions } from "#/services/notion-mcp/funcs";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
@@ -16,9 +17,14 @@ export const Route = createFileRoute("/_layout")({
 
 function RouteComponent() {
   return (
-    <>
+    <div className="flex min-h-lvh flex-col">
       <Header />
-      <Outlet />
-    </>
+      <div className="flex-1">
+        <Outlet />
+      </div>
+      <div className="inner w-full">
+        <SiteFooter />
+      </div>
+    </div>
   );
 }
