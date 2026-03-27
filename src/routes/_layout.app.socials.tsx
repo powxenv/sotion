@@ -59,7 +59,7 @@ type PendingAction = "idle" | "connecting" | "disconnecting";
 
 type SocialConnectionViewModel = {
   providerId: SocialConnectionProviderId;
-  isConnected: boolean;
+  status: "not_connected" | "connected" | "reauthorization_required";
   accountId: string | null;
   connectedAt: string | null;
   scopes: string[];
@@ -133,6 +133,9 @@ function SocialConnectionCard(props: {
   const [feedback, setFeedback] = useState<SocialConnectionsNotice | null>(
     props.initialFeedback ?? null,
   );
+  const isConnected = props.connection.status !== "not_connected";
+  const needsReauthorization =
+    props.connection.status === "reauthorization_required";
 
   const connectedName =
     props.connection.displayName ||
@@ -217,6 +220,9 @@ function SocialConnectionCard(props: {
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold">{provider.label}</h2>
+            {needsReauthorization ? (
+              <Badge variant="destructive">Reauthorization required</Badge>
+            ) : null}
             {isUnavailable ? (
               <Badge variant="outline">
                 {provider.availabilityLabel ?? "Unavailable"}
@@ -224,9 +230,14 @@ function SocialConnectionCard(props: {
             ) : null}
           </div>
 
-          {props.connection.isConnected ? (
+          {isConnected ? (
             <div className="space-y-1 text-sm">
-              <p className="font-medium">{connectedName ?? "Connected account"}</p>
+              <p className="font-medium">
+                {connectedName ??
+                  (needsReauthorization
+                    ? "Linked account needs to be reconnected"
+                    : "Connected account")}
+              </p>
               <div className="flex flex-wrap gap-x-3 gap-y-1 text-muted-foreground">
                 {props.connection.handle &&
                 props.connection.handle !== connectedName ? (
@@ -234,6 +245,11 @@ function SocialConnectionCard(props: {
                 ) : null}
                 {linkedAtLabel ? <span>Linked {linkedAtLabel}</span> : null}
               </div>
+              {needsReauthorization ? (
+                <p className="text-destructive">
+                  Reconnect this account before using it for publishing.
+                </p>
+              ) : null}
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -250,7 +266,7 @@ function SocialConnectionCard(props: {
 
           {isUnavailable ? null : (
             <div>
-              {props.connection.isConnected ? (
+              {isConnected && !needsReauthorization ? (
                 <Button
                   variant="outline"
                   disabled={isPending}
@@ -265,7 +281,7 @@ function SocialConnectionCard(props: {
                   onClick={connectAccount}
                 >
                   {pendingAction === "connecting" ? <Spinner /> : null}
-                  Connect
+                  {needsReauthorization ? "Reconnect" : "Connect"}
                 </Button>
               )}
             </div>

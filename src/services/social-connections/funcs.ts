@@ -14,7 +14,7 @@ import {
 
 type SocialConnectionItem = {
   providerId: SocialConnectionProviderId;
-  isConnected: boolean;
+  status: "not_connected" | "connected" | "reauthorization_required";
   accountId: string | null;
   connectedAt: string | null;
   scopes: string[];
@@ -51,17 +51,60 @@ export const listSocialConnections = createServerFn({ method: "GET" }).handler(
     const items = await Promise.all(
       SOCIAL_CONNECTION_PROVIDERS.map(async (provider) => {
         const row = latestByProvider.get(provider.id);
-        const profile = row
-          ? await getSocialConnectionProfile({
-              accessToken: row.accessToken,
-              accountId: row.accountId,
+        if (!row) {
+          return {
+            providerId: provider.id,
+            status: "not_connected",
+            accountId: null,
+            connectedAt: null,
+            scopes: [],
+            displayName: null,
+            handle: null,
+            imageUrl: null,
+          } satisfies SocialConnectionItem;
+        }
+
+        let status: SocialConnectionItem["status"] = "connected";
+        let accessToken = row.accessToken;
+        let accessTokenExpiresAt = row.accessTokenExpiresAt;
+
+        try {
+          const token = await auth.api.getAccessToken({
+            headers,
+            body: {
               providerId: provider.id,
-            })
-          : null;
+              accountId: row.accountId,
+              userId: session.user.id,
+            },
+          });
+
+          accessToken = token?.accessToken ?? accessToken;
+          accessTokenExpiresAt =
+            token?.accessTokenExpiresAt ?? accessTokenExpiresAt;
+        } catch {
+          status = "reauthorization_required";
+        }
+
+        if (
+          status === "connected" &&
+          accessTokenExpiresAt &&
+          new Date(accessTokenExpiresAt).getTime() <= Date.now()
+        ) {
+          status = "reauthorization_required";
+        }
+
+        const profile =
+          status === "reauthorization_required"
+            ? null
+            : await getSocialConnectionProfile({
+                accessToken,
+                accountId: row.accountId,
+                providerId: provider.id,
+              });
 
         return {
           providerId: provider.id,
-          isConnected: Boolean(row),
+          status,
           accountId: row?.accountId ?? null,
           connectedAt: row?.createdAt.toISOString() ?? null,
           scopes: row?.scope

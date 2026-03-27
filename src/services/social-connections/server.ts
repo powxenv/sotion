@@ -23,6 +23,7 @@ export async function listSocialConnectionRows(userId: string) {
       providerId: account.providerId,
       accountId: account.accountId,
       accessToken: account.accessToken,
+      accessTokenExpiresAt: account.accessTokenExpiresAt,
       scope: account.scope,
       createdAt: account.createdAt,
     })

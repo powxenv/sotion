@@ -6,7 +6,7 @@ import type { OAuth2Tokens } from "@better-auth/core/oauth2";
 import { db } from "#/db";
 import { env } from "#/env";
 
-const TWITTER_PUBLISH_SCOPES = ["tweet.write", "media.write"];
+const TWITTER_PUBLISH_SCOPES = ["offline.access", "tweet.write", "media.write"];
 const LINKEDIN_PUBLISH_SCOPES = ["w_member_social"];
 const FACEBOOK_PUBLISH_SCOPES = [
   "pages_show_list",
