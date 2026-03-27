@@ -60,7 +60,7 @@ function ProvidersPage() {
   const savedProviders = new Set(aiProviderSettings);
 
   return (
-    <main className="py-10">
+    <main className="py-24">
       <div className="inner">
         <div className="flex flex-col gap-8">
           <div className="space-y-3">

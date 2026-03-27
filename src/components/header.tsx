@@ -45,7 +45,7 @@ const Header = () => {
   };
 
   return (
-    <header className="border-b">
+    <header className="border-b fixed top-0 inset-x-0 z-50 bg-background/20 backdrop-blur-lg">
       <div className="inner">
         <div className="h-14 flex items-center justify-between">
           <span>Sotion</span>

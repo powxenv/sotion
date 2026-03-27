@@ -276,10 +276,7 @@ function SocialConnectionCard(props: {
                   Disconnect
                 </Button>
               ) : (
-                <Button
-                  disabled={isPending}
-                  onClick={connectAccount}
-                >
+                <Button disabled={isPending} onClick={connectAccount}>
                   {pendingAction === "connecting" ? <Spinner /> : null}
                   {needsReauthorization ? "Reconnect" : "Connect"}
                 </Button>
@@ -300,7 +297,7 @@ function SocialConnectionsPage() {
   const searchFeedback = getSearchFeedback(search);
 
   return (
-    <main className="py-10">
+    <main className="py-24">
       <div className="inner">
         <div className="flex flex-col gap-8">
           <div className="space-y-3">

@@ -210,40 +210,40 @@ function App() {
     <>
       <McpDialog status={mcpStatus} />
 
-      <main className="h-[calc(100lvh-57px)] relative">
+      <main className="h-lvh pt-10 relative">
         <ScrollArea ref={scrollAreaRef} className="h-full overflow-y-auto">
           <div className="inner py-8 h-full">
             {messages.length === 0 ? (
               <div className="flex items-center justify-center flex-col">
-                  <img
-                    className="h-60 dark:invert"
-                    src="/notioly/Summer-Collection n.4.svg"
-                    alt=""
-                  />
-                  <h1 className="text-3xl font-bold mb-2">Welcome!</h1>
-                  <p className="text-muted-foreground max-w-sm text-center">
-                    Try typing below or click quick prompts to get started
-                  </p>
-                  <div className="flex flex-wrap gap-1 mt-6 max-w-2xl justify-center">
-                    {suggestedPrompts.map((prompt) => (
-                      <Button
-                        key={prompt}
-                        className="justify-start text-muted-foreground"
-                        variant="secondary"
-                        size="lg"
-                        disabled={isChatDisabled}
-                        onClick={() => submitMessage(prompt)}
-                      >
-                        <span>{prompt}</span>
-                      </Button>
-                    ))}
-                  </div>
+                <img
+                  className="h-60 dark:invert"
+                  src="/notioly/Summer-Collection n.4.svg"
+                  alt=""
+                />
+                <h1 className="text-3xl font-bold mb-2">Welcome!</h1>
+                <p className="text-muted-foreground max-w-sm text-center">
+                  Try typing below or click quick prompts to get started
+                </p>
+                <div className="flex flex-wrap gap-1 mt-6 max-w-2xl justify-center">
+                  {suggestedPrompts.map((prompt) => (
+                    <Button
+                      key={prompt}
+                      className="justify-start text-muted-foreground"
+                      variant="secondary"
+                      size="lg"
+                      disabled={isChatDisabled}
+                      onClick={() => submitMessage(prompt)}
+                    >
+                      <span>{prompt}</span>
+                    </Button>
+                  ))}
                 </div>
-              ) : (
-                <ChatMessageList
-                  messages={messages}
-                  status={status}
-                  error={error}
+              </div>
+            ) : (
+              <ChatMessageList
+                messages={messages}
+                status={status}
+                error={error}
               />
             )}
           </div>
