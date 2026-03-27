@@ -5,6 +5,7 @@ import { genericOAuth } from "better-auth/plugins";
 import type { OAuth2Tokens } from "@better-auth/core/oauth2";
 import { db } from "#/db";
 import { env } from "#/env";
+import { SOCIAL_CONNECTION_PROVIDERS } from "#/lib/social-connections";
 
 const TWITTER_PUBLISH_SCOPES = ["offline.access", "tweet.write", "media.write"];
 const LINKEDIN_PUBLISH_SCOPES = ["w_member_social"];
@@ -294,6 +295,10 @@ const genericOAuthProviders = [
   },
 ];
 
+const trustedSocialProviders = SOCIAL_CONNECTION_PROVIDERS.map(
+  (provider) => provider.id,
+);
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -305,6 +310,7 @@ export const auth = betterAuth({
     accountLinking: {
       enabled: true,
       disableImplicitLinking: true,
+      trustedProviders: trustedSocialProviders,
     },
   },
   socialProviders,
