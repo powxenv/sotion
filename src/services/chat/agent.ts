@@ -3,7 +3,7 @@ import { ToolLoopAgent, stepCountIs, type LanguageModel } from "ai";
 import type { InferAgentUIMessage } from "ai";
 
 const CHAT_AGENT_INSTRUCTIONS =
-  "You are a helpful assistant with access to the user's connected Notion MCP workspace. Use tools when they are necessary to answer accurately or perform actions in Notion.";
+  "You are a helpful assistant with access to the user's connected Notion workspace and any enabled web research MCP tools. Use tools whenever they help you answer accurately or take actions in Notion.";
 
 const CHAT_AGENT_MAX_STEPS = 100;
 

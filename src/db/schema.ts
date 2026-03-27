@@ -236,6 +236,38 @@ export const aiProviderSetting = pgTable(
   ],
 );
 
+export const mcpServerConfig = pgTable(
+  "mcp_server_config",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    identifier: text("identifier").notNull(),
+    label: text("label").notNull(),
+    source: text("source").notNull().default("default"),
+    transportType: text("transport_type").notNull().default("http"),
+    serverUrl: text("server_url").notNull(),
+    authType: text("auth_type").notNull().default("api_key"),
+    enabled: boolean("enabled").notNull().default(false),
+    encryptedSecret: text("encrypted_secret"),
+    headersJson: text("headers_json").notNull().default("{}"),
+    configJson: text("config_json").notNull().default("{}"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("mcp_server_config_user_identifier_idx").on(
+      table.userId,
+      table.identifier,
+    ),
+    index("mcp_server_config_user_idx").on(table.userId),
+  ],
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
@@ -244,6 +276,7 @@ export const userRelations = relations(user, ({ many }) => ({
   chats: many(chat),
   onboardingStates: many(onboardingState),
   aiProviderSettings: many(aiProviderSetting),
+  mcpServerConfigs: many(mcpServerConfig),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -300,6 +333,16 @@ export const aiProviderSettingRelations = relations(
   ({ one }) => ({
     user: one(user, {
       fields: [aiProviderSetting.userId],
+      references: [user.id],
+    }),
+  }),
+);
+
+export const mcpServerConfigRelations = relations(
+  mcpServerConfig,
+  ({ one }) => ({
+    user: one(user, {
+      fields: [mcpServerConfig.userId],
       references: [user.id],
     }),
   }),

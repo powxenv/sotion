@@ -3,9 +3,11 @@ import {
   createIdGenerator,
   validateUIMessages,
 } from "ai";
+import type { MCPClient } from "@ai-sdk/mcp";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { auth } from "#/lib/auth";
+import { filterPresetTools } from "#/lib/mcp-providers";
 import {
   createChatAgent,
   type ChatMessage,
@@ -14,6 +16,7 @@ import {
   resolveChatLanguageModel,
   saveChat,
 } from "#/services/chat/server";
+import { createEnabledMcpClientsForUser } from "#/services/mcp-settings/server";
 import { createAuthorizedNotionMcpClient } from "#/services/notion-mcp/server";
 
 const chatRequestBodySchema = z.object({
@@ -36,27 +39,55 @@ export const Route = createFileRoute("/api/chat")({
         const { id, chatId, messages, selectedModel } =
           chatRequestBodySchema.parse(await request.json());
         const resolvedChatId = chatId || id;
+        const mcpClients: MCPClient[] = [];
 
         if (!resolvedChatId) {
           return Response.json({ error: "missing_chat_id" }, { status: 400 });
         }
 
-        const mcpClientResult =
+        const notionMcpClientResult =
           await createAuthorizedNotionMcpClient({
             userId: session.user.id,
             origin: new URL(request.url).origin,
           });
 
-        if (!mcpClientResult.ok) {
+        if (!notionMcpClientResult.ok) {
           return Response.json(
             { error: "notion_mcp_required" },
             { status: 403 },
           );
         }
 
-        const mcpClient = mcpClientResult.client;
+        mcpClients.push(notionMcpClientResult.client);
+
         try {
-          const tools = await mcpClient.tools();
+          const configuredMcpClients =
+            await createEnabledMcpClientsForUser(session.user.id);
+          mcpClients.push(...configuredMcpClients.map(({ client }) => client));
+
+          const toolSets = await Promise.all(
+            [
+              {
+                client: notionMcpClientResult.client,
+                presetId: null,
+                selectedFeatureIds: [],
+              },
+              ...configuredMcpClients,
+            ].map(async (entry) => {
+              const tools = await entry.client.tools();
+
+              if (!entry.presetId) {
+                return tools;
+              }
+
+              return filterPresetTools({
+                presetId: entry.presetId,
+                selectedFeatureIds: entry.selectedFeatureIds,
+                tools,
+              });
+            }),
+          );
+          const tools = Object.assign({}, ...toolSets);
           const validatedMessages = await validateUIMessages<ChatMessage>({
             messages,
             tools,
@@ -90,12 +121,12 @@ export const Route = createFileRoute("/api/chat")({
                   chatId: resolvedChatId,
                   messages: responseMessages,
                 }),
-                mcpClient.close(),
+                ...mcpClients.map((mcpClient) => mcpClient.close()),
               ]);
             },
           });
         } catch (error) {
-          await mcpClient.close();
+          await Promise.allSettled(mcpClients.map((mcpClient) => mcpClient.close()));
           if (error instanceof Response) {
             return error;
           }

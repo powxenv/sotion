@@ -12,6 +12,7 @@ import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AiMagicIcon,
+  AiBrain01Icon,
   ArrowUpRight01Icon,
   BubbleChatIcon,
   Link01Icon,
@@ -82,6 +83,16 @@ const Header = () => {
                 >
                   <HugeiconsIcon icon={AiMagicIcon} />
                   <span>AI Providers</span>
+                </Button>
+
+                <Button
+                  nativeButton={false}
+                  className="justify-start text-muted-foreground"
+                  variant="ghost"
+                  render={<Link to="/app/mcp" />}
+                >
+                  <HugeiconsIcon icon={AiBrain01Icon} />
+                  <span>MCP Servers</span>
                 </Button>
 
                 <DropdownMenu>
