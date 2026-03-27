@@ -6,7 +6,7 @@ To run this application:
 
 ```bash
 bun install
-bun --bun run dev
+bun run dev
 ```
 
 # Building For Production
@@ -14,15 +14,31 @@ bun --bun run dev
 To build this application for production:
 
 ```bash
-bun --bun run build
+bun run build
 ```
+
+## Cloudflare Workers
+
+This app is configured for Cloudflare Workers using the official TanStack Start
+hosting path.
+
+```bash
+bun run cf-typegen
+bun run deploy
+```
+
+- `wrangler.jsonc` uses `nodejs_compat` because the server runtime depends on
+  Node-compatible modules like `pg` and `node:crypto`.
+- Set your production secrets and vars in Cloudflare before deploying. The app
+  expects the same server-side values you already use locally in `.env.local`.
+- Rerun `bun run cf-typegen` whenever you change `wrangler.jsonc` bindings.
 
 ## Testing
 
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
 
 ```bash
-bun --bun run test
+bun run test
 ```
 
 ## Styling
@@ -138,7 +154,7 @@ This project now includes a server-side Notion MCP OAuth integration.
 3. Apply the database migration:
 
 ```bash
-bun --bun run db:migrate
+bun run db:migrate
 ```
 
 4. Start the app, sign in, and open `/onboard` to:
