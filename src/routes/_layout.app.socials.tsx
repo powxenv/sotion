@@ -3,6 +3,7 @@ import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
+import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import { Spinner } from "#/components/ui/spinner";
 import { authClient } from "#/lib/auth-client";
@@ -144,6 +145,7 @@ function SocialConnectionCard(props: {
       })
     : null;
   const isPending = pendingAction !== "idle";
+  const isUnavailable = provider.availability === "disabled";
 
   const connectAccount = async () => {
     setFeedback(null);
@@ -213,7 +215,14 @@ function SocialConnectionCard(props: {
         </div>
 
         <div className="min-w-0 flex-1 space-y-1">
-          <h2 className="text-lg font-semibold">{provider.label}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-semibold">{provider.label}</h2>
+            {isUnavailable ? (
+              <Badge variant="outline">
+                {provider.availabilityLabel ?? "Unavailable"}
+              </Badge>
+            ) : null}
+          </div>
 
           {props.connection.isConnected ? (
             <div className="space-y-1 text-sm">
@@ -239,26 +248,28 @@ function SocialConnectionCard(props: {
             </div>
           ) : null}
 
-          <div>
-            {props.connection.isConnected ? (
-              <Button
-                variant="outline"
-                disabled={isPending}
-                onClick={disconnectAccount}
-              >
-                {pendingAction === "disconnecting" ? <Spinner /> : null}
-                Disconnect
-              </Button>
-            ) : (
-              <Button
-                disabled={isPending}
-                onClick={connectAccount}
-              >
-                {pendingAction === "connecting" ? <Spinner /> : null}
-                Connect
-              </Button>
-            )}
-          </div>
+          {isUnavailable ? null : (
+            <div>
+              {props.connection.isConnected ? (
+                <Button
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={disconnectAccount}
+                >
+                  {pendingAction === "disconnecting" ? <Spinner /> : null}
+                  Disconnect
+                </Button>
+              ) : (
+                <Button
+                  disabled={isPending}
+                  onClick={connectAccount}
+                >
+                  {pendingAction === "connecting" ? <Spinner /> : null}
+                  Connect
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </section>

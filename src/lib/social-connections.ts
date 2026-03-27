@@ -7,6 +7,7 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     summary:
       "Link your X account with publish-ready scopes so Sotion can post text and media later.",
     providerType: "social",
+    availability: "available",
   },
   {
     id: "linkedin",
@@ -16,6 +17,7 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     summary:
       "Connect LinkedIn with member publishing access so Sotion can publish on your behalf later.",
     providerType: "social",
+    availability: "available",
   },
   {
     id: "facebook",
@@ -25,6 +27,8 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     summary:
       "Connect Facebook with Page publishing permissions so Sotion can publish posts and videos later.",
     providerType: "social",
+    availability: "disabled",
+    availabilityLabel: "Currently unavailable",
   },
   {
     id: "instagram",
@@ -34,6 +38,8 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     summary:
       "Attach Instagram with business publishing access so Sotion can publish feed content later.",
     providerType: "oauth2",
+    availability: "disabled",
+    availabilityLabel: "Currently unavailable",
   },
   {
     id: "threads",
@@ -43,6 +49,8 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     summary:
       "Attach Threads with content publishing access so Sotion can publish Threads posts later.",
     providerType: "oauth2",
+    availability: "disabled",
+    availabilityLabel: "Currently unavailable",
   },
   {
     id: "tiktok",
@@ -52,6 +60,7 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     summary:
       "Link TikTok with direct-post access so Sotion can publish videos later.",
     providerType: "social",
+    availability: "available",
   },
 ] as const;
 
