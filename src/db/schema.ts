@@ -212,6 +212,32 @@ export const onboardingState = pgTable(
   (table) => [uniqueIndex("onboarding_state_user_idx").on(table.userId)],
 );
 
+export const notionWorkspace = pgTable(
+  "notion_workspace",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    purpose: text("purpose").notNull().default("social_media_management"),
+    pageId: text("page_id").notNull(),
+    databaseId: text("database_id").notNull(),
+    source: text("source").notNull().default("manual"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("notion_workspace_user_purpose_idx").on(
+      table.userId,
+      table.purpose,
+    ),
+    index("notion_workspace_user_idx").on(table.userId),
+  ],
+);
+
 export const aiProviderSetting = pgTable(
   "ai_provider_setting",
   {

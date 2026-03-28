@@ -12,12 +12,15 @@ import {
   createChatAgent,
   type ChatMessage,
 } from "#/services/chat/agent";
+import { buildChatAgentInstructions } from "#/services/chat/prompt";
 import {
   resolveChatLanguageModel,
   saveChat,
 } from "#/services/chat/server";
+import { createChatAppTools } from "#/services/chat/tools";
 import { createEnabledMcpClientsForUser } from "#/services/mcp-settings/server";
 import { createAuthorizedNotionMcpClient } from "#/services/notion-mcp/server";
+import { getSocialMediaWorkspaceForUser } from "#/services/notion-workspace/server";
 
 const chatRequestBodySchema = z.object({
   id: z.string().optional(),
@@ -87,7 +90,14 @@ export const Route = createFileRoute("/api/chat")({
               });
             }),
           );
-          const tools = Object.assign({}, ...toolSets);
+          const workspace = await getSocialMediaWorkspaceForUser(
+            session.user.id,
+          );
+          const tools = Object.assign(
+            {},
+            ...toolSets,
+            createChatAppTools({ userId: session.user.id }),
+          );
           const validatedMessages = await validateUIMessages<ChatMessage>({
             messages,
             tools,
@@ -104,7 +114,11 @@ export const Route = createFileRoute("/api/chat")({
             selectedModel,
           });
 
-          const agent = createChatAgent({ model, tools });
+          const agent = createChatAgent({
+            model,
+            tools,
+            instructions: buildChatAgentInstructions({ workspace }),
+          });
 
           return await createAgentUIStreamResponse({
             agent,
