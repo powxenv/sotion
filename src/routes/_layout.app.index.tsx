@@ -295,7 +295,7 @@ function App() {
                       variant="secondary"
                       size="lg"
                       disabled={isChatDisabled}
-                      onClick={() => submitMessage(prompt)}
+                      onClick={() => setInput(prompt)}
                     >
                       <span>{prompt}</span>
                     </Button>
