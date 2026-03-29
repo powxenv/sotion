@@ -37,7 +37,7 @@ function RouteComponent() {
 
           <img
             className="mt-12 w-full rounded-lg border shadow-2xl shadow-black/6"
-            src="/demo.png"
+            src="/demo.jpg"
             alt="Demo Image"
           />
         </div>
