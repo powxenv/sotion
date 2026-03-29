@@ -15,6 +15,7 @@ import {
   useState,
   useTransition,
 } from "react";
+import AiProviderDialog from "#/components/ai-provider-dialog";
 import ChatMessageList from "#/components/chat-message-list";
 import McpDialog from "#/components/mcp-dialog";
 import { Button } from "#/components/ui/button";
@@ -101,6 +102,7 @@ function App() {
     listAiProviderSettingsOptions(),
   );
   const { data: currentChat } = useSuspenseQuery(getCurrentChatOptions());
+  const hasConfiguredProvider = aiProviderSettings.length > 0;
   const configuredProviders = useMemo(
     () => new Set(aiProviderSettings),
     [aiProviderSettings],
@@ -153,8 +155,13 @@ function App() {
       sendAutomaticallyWhen:
         lastAssistantMessageIsCompleteWithApprovalResponses,
     });
+  const shouldShowMcpDialog = !mcpStatus.connected && mcpStatus.hasConnectedBefore;
+  const shouldShowAiProviderDialog = !hasConfiguredProvider;
   const isChatDisabled =
-    !mcpStatus.connected || !selectedModel || status !== "ready";
+    !mcpStatus.connected ||
+    !hasConfiguredProvider ||
+    !selectedModel ||
+    status !== "ready";
 
   useEffect(() => {
     const storedModel = window.localStorage.getItem(CHAT_MODEL_STORAGE_KEY);
@@ -271,7 +278,12 @@ function App() {
 
   return (
     <>
-      <McpDialog status={mcpStatus} />
+      {shouldShowAiProviderDialog ? (
+        <AiProviderDialog hasConfiguredProvider={hasConfiguredProvider} />
+      ) : null}
+      {!shouldShowAiProviderDialog && shouldShowMcpDialog ? (
+        <McpDialog status={mcpStatus} />
+      ) : null}
 
       <main className="h-lvh pt-10 relative">
         <ScrollArea ref={scrollAreaRef} className="h-full overflow-y-auto">
@@ -338,7 +350,7 @@ function App() {
             <div className="flex gap-1">
               <Combobox<ChatModelOption>
                 items={CHAT_MODEL_GROUPS}
-                disabled={!mcpStatus.connected}
+                disabled={!mcpStatus.connected || !hasConfiguredProvider}
                 value={selectedModelOption}
                 itemToStringLabel={(item) => item.label}
                 itemToStringValue={(item) => item.value}
@@ -347,7 +359,7 @@ function App() {
                 }
               >
                 <ComboboxInput
-                  disabled={!mcpStatus.connected}
+                  disabled={!mcpStatus.connected || !hasConfiguredProvider}
                   placeholder="Select a model"
                 >
                   <InputGroupAddon>

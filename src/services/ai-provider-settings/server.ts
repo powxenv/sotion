@@ -62,3 +62,17 @@ export async function saveAiProviderApiKeyForUser(args: {
       },
     });
 }
+
+export async function deleteAiProviderApiKeyForUser(args: {
+  provider: string;
+  userId: string;
+}) {
+  await db
+    .delete(aiProviderSetting)
+    .where(
+      and(
+        eq(aiProviderSetting.userId, args.userId),
+        eq(aiProviderSetting.provider, args.provider),
+      ),
+    );
+}

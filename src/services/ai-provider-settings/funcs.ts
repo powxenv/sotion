@@ -4,6 +4,7 @@ import { getRequestHeaders } from "@tanstack/react-start/server";
 import { auth } from "#/lib/auth";
 import { isAiProvider, type AiProvider } from "#/lib/ai-providers";
 import {
+  deleteAiProviderApiKeyForUser,
   listAiProviderSettingRows,
   saveAiProviderApiKeyForUser,
 } from "#/services/ai-provider-settings/server";
@@ -39,6 +40,26 @@ export const saveAiProviderApiKey = createServerFn({ method: "POST" })
 
     await saveAiProviderApiKeyForUser({
       apiKey: data.apiKey,
+      provider: data.provider,
+      userId: session.user.id,
+    });
+  });
+
+export const removeAiProviderApiKey = createServerFn({ method: "POST" })
+  .inputValidator((data: { provider: string }) => data)
+  .handler(async ({ data }) => {
+    const headers = getRequestHeaders();
+    const session = await auth.api.getSession({ headers });
+
+    if (!session) {
+      throw new Response("Unauthorized", { status: 401 });
+    }
+
+    if (!isAiProvider(data.provider)) {
+      throw new Error(`Unsupported AI provider: ${data.provider}`);
+    }
+
+    await deleteAiProviderApiKeyForUser({
       provider: data.provider,
       userId: session.user.id,
     });

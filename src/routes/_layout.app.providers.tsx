@@ -19,6 +19,7 @@ import { Spinner } from "#/components/ui/spinner";
 import { AI_PROVIDERS } from "#/lib/ai-providers";
 import {
   listAiProviderSettingsOptions,
+  removeAiProviderApiKey,
   saveAiProviderApiKey,
 } from "#/services/ai-provider-settings/funcs";
 import { getSessionOptions } from "#/services/auth/funcs";
@@ -106,6 +107,7 @@ function ProviderCardForm({
       apiKey: "",
     },
   });
+  const [isRemoving, setIsRemoving] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const inputId = `providers-page-${provider.id}-api-key`;
 
@@ -115,6 +117,8 @@ function ProviderCardForm({
       : "API key saved.";
 
     try {
+      form.clearErrors();
+      setSuccessMessage(null);
       await saveAiProviderApiKey({
         data: {
           provider: provider.id,
@@ -130,6 +134,30 @@ function ProviderCardForm({
         message:
           error instanceof Error ? error.message : "Failed to save API key.",
       });
+    }
+  };
+
+  const removeKey = async () => {
+    try {
+      form.clearErrors();
+      setSuccessMessage(null);
+      setIsRemoving(true);
+      await removeAiProviderApiKey({
+        data: {
+          provider: provider.id,
+        },
+      });
+      form.reset();
+      setSuccessMessage("API key removed.");
+      await onSaved();
+    } catch (error) {
+      setSuccessMessage(null);
+      form.setError("apiKey", {
+        message:
+          error instanceof Error ? error.message : "Failed to remove API key.",
+      });
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -161,7 +189,7 @@ function ProviderCardForm({
             <Field>
               <FieldDescription>
                 {isSaved
-                  ? "A key is already saved for this provider. Saving again will override the existing key."
+                  ? "A key is already saved for this provider. Saving again will override the existing key, or you can remove it."
                   : "Paste the API key below to enable this provider."}
               </FieldDescription>
             </Field>
@@ -182,11 +210,22 @@ function ProviderCardForm({
                     <div className="flex items-center gap-3">
                       <Button
                         type="submit"
-                        disabled={form.formState.isSubmitting}
+                        disabled={form.formState.isSubmitting || isRemoving}
                       >
                         {form.formState.isSubmitting ? <Spinner /> : null}
                         {isSaved ? "Save New Key" : "Save Key"}
                       </Button>
+                      {isSaved ? (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          disabled={form.formState.isSubmitting || isRemoving}
+                          onClick={removeKey}
+                        >
+                          {isRemoving ? <Spinner /> : null}
+                          Remove Key
+                        </Button>
+                      ) : null}
                       {successMessage ? (
                         <p className="text-sm text-muted-foreground">
                           {successMessage}

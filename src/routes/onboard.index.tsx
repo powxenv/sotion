@@ -21,6 +21,7 @@ import { Spinner } from "#/components/ui/spinner";
 import { AI_PROVIDERS } from "#/lib/ai-providers";
 import {
   listAiProviderSettingsOptions,
+  removeAiProviderApiKey,
   saveAiProviderApiKey,
 } from "#/services/ai-provider-settings/funcs";
 import { getSessionOptions } from "#/services/auth/funcs";
@@ -285,9 +286,14 @@ function OnboardPage() {
                           provider={provider}
                           isSaved={isSaved}
                           onSaved={async () => {
-                            await queryClient.invalidateQueries({
-                              queryKey: ["ai-provider-settings"],
-                            });
+                            await Promise.all([
+                              queryClient.invalidateQueries({
+                                queryKey: ["ai-provider-settings"],
+                              }),
+                              queryClient.invalidateQueries({
+                                queryKey: ["onboarding-state"],
+                              }),
+                            ]);
                           }}
                         />
                       );
@@ -415,11 +421,13 @@ function AiProviderForm({
       apiKey: "",
     },
   });
+  const [isRemoving, setIsRemoving] = useState(false);
 
   const inputId = `provider-${provider.id}-api-key`;
 
   const onSubmit = async (values: AiProviderFormValues) => {
     try {
+      form.clearErrors();
       await saveAiProviderApiKey({
         data: {
           provider: provider.id,
@@ -433,6 +441,27 @@ function AiProviderForm({
         message:
           error instanceof Error ? error.message : "Failed to save API key.",
       });
+    }
+  };
+
+  const removeKey = async () => {
+    try {
+      form.clearErrors();
+      setIsRemoving(true);
+      await removeAiProviderApiKey({
+        data: {
+          provider: provider.id,
+        },
+      });
+      form.reset();
+      await onSaved();
+    } catch (error) {
+      form.setError("apiKey", {
+        message:
+          error instanceof Error ? error.message : "Failed to remove API key.",
+      });
+    } finally {
+      setIsRemoving(false);
     }
   };
 
@@ -469,11 +498,22 @@ function AiProviderForm({
                     />
                     <Button
                       type="submit"
-                      disabled={form.formState.isSubmitting}
+                      disabled={form.formState.isSubmitting || isRemoving}
                     >
                       {form.formState.isSubmitting ? <Spinner /> : null}
                       Save
                     </Button>
+                    {isSaved ? (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        disabled={form.formState.isSubmitting || isRemoving}
+                        onClick={removeKey}
+                      >
+                        {isRemoving ? <Spinner /> : null}
+                        Remove Key
+                      </Button>
+                    ) : null}
                   </div>
                   {fieldState.invalid ? (
                     <FieldError errors={[fieldState.error]} />

@@ -127,8 +127,9 @@ async function syncOnboardingState(userId: string) {
     )
     ? connection.connectedAt
     : record.workspaceConnectedAt ?? null;
-  const aiProviderSetupAt =
-    record.aiProviderSetupAt ?? (hasAiProvider ? new Date() : null);
+  const aiProviderSetupAt = hasAiProvider
+    ? (record.aiProviderSetupAt ?? new Date())
+    : null;
 
   if (
     record.currentStep !== nextStep ||
