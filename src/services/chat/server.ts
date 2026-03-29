@@ -44,6 +44,29 @@ export async function saveChat(args: {
   }
 }
 
+export async function clearChat(args: {
+  userId: string;
+  chatId: string;
+}) {
+  const [updated] = await db
+    .update(chat)
+    .set({
+      messages: "[]",
+      updatedAt: new Date(),
+    })
+    .where(and(eq(chat.id, args.chatId), eq(chat.userId, args.userId)))
+    .returning({ id: chat.id, messages: chat.messages });
+
+  if (!updated) {
+    throw new Response("Chat not found", { status: 404 });
+  }
+
+  return {
+    id: updated.id,
+    messagesJson: updated.messages,
+  };
+}
+
 export async function resolveChatLanguageModel(args: {
   userId: string;
   selectedModel?: string | null;

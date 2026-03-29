@@ -3,10 +3,18 @@ import {
   lastAssistantMessageIsCompleteWithApprovalResponses,
 } from "ai";
 import { useChat } from "@ai-sdk/react";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { SentIcon, AiBrain01Icon, CleanIcon } from "@hugeicons/core-free-icons";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import ChatMessageList from "#/components/chat-message-list";
 import McpDialog from "#/components/mcp-dialog";
 import { Button } from "#/components/ui/button";
@@ -25,10 +33,12 @@ import {
   ComboboxSeparator,
 } from "@/components/ui/combobox";
 import { InputGroupAddon } from "@/components/ui/input-group";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { listAiProviderSettingsOptions } from "#/services/ai-provider-settings/funcs";
 import type { ChatMessage } from "#/services/chat/agent";
-import { getCurrentChatOptions } from "#/services/chat/funcs";
+import {
+  clearCurrentChat,
+  getCurrentChatOptions,
+} from "#/services/chat/funcs";
 import { getNotionMcpStatusOptions } from "#/services/notion-mcp/funcs";
 import { getOnboardingStateOptions } from "#/services/onboarding/funcs";
 import { getSessionOptions } from "#/services/auth/funcs";
@@ -82,7 +92,9 @@ export const Route = createFileRoute("/_layout/app/")({
 });
 
 function App() {
+  const queryClient = useQueryClient();
   const [input, setInput] = useState("");
+  const [isClearingChat, startClearingChatTransition] = useTransition();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { data: mcpStatus } = useSuspenseQuery(getNotionMcpStatusOptions());
   const { data: aiProviderSettings } = useSuspenseQuery(
@@ -125,7 +137,15 @@ function App() {
     }
   }, [currentChat.messagesJson]);
 
-  const { messages, sendMessage, status, error, addToolApprovalResponse } =
+  const {
+    messages,
+    sendMessage,
+    setMessages,
+    stop,
+    status,
+    error,
+    addToolApprovalResponse,
+  } =
     useChat<ChatMessage>({
       id: currentChat.id,
       messages: initialMessages,
@@ -221,6 +241,33 @@ function App() {
     },
     [addToolApprovalResponse],
   );
+
+  const handleClearChat = useCallback(() => {
+    if (isClearingChat) {
+      return;
+    }
+
+    startClearingChatTransition(async () => {
+      stop();
+
+      const clearedChat = await clearCurrentChat({
+        data: {
+          chatId: currentChat.id,
+        },
+      });
+
+      setMessages([]);
+      setInput("");
+      queryClient.setQueryData(getCurrentChatOptions().queryKey, clearedChat);
+    });
+  }, [
+    currentChat.id,
+    isClearingChat,
+    queryClient,
+    setMessages,
+    startClearingChatTransition,
+    stop,
+  ]);
 
   return (
     <>
@@ -346,8 +393,17 @@ function App() {
             </div>
             <div className="flex gap-1">
               {messages.length > 0 && (
-                <Button variant="destructive">
-                  <HugeiconsIcon icon={CleanIcon} /> Clear Chat
+                <Button
+                  variant="destructive"
+                  disabled={isClearingChat}
+                  onClick={() => void handleClearChat()}
+                >
+                  {isClearingChat ? (
+                    <Spinner />
+                  ) : (
+                    <HugeiconsIcon icon={CleanIcon} />
+                  )}{" "}
+                  Clear Chat
                 </Button>
               )}
               <Button
