@@ -36,9 +36,10 @@ export const SOCIAL_CONNECTION_PROVIDERS: readonly SocialConnectionProviderDefin
     initials: "@",
     logoPath: "/social-icons/threads.svg",
     summary:
-      "Attach Threads with content publishing access so Sotion can publish text posts later.",
+      "Threads connection is currently unavailable.",
     providerType: "oauth2",
-    availability: "available",
+    availability: "disabled",
+    availabilityLabel: "Currently unavailable",
   },
 ];
 
