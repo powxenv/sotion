@@ -1,11 +1,7 @@
 import { useState, useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import {
-  createFileRoute,
-  redirect,
-  useNavigate,
-} from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
   AiMagicIcon,
   ArrowLeft01Icon,
@@ -69,7 +65,6 @@ export const Route = createFileRoute("/onboard/")({
 });
 
 function OnboardPage() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: onboarding } = useSuspenseQuery(getOnboardingStateOptions());
   const { data: mcpStatus } = useSuspenseQuery(getNotionMcpStatusOptions());
@@ -87,7 +82,7 @@ function OnboardPage() {
 
       try {
         await completeOnboarding();
-        await navigate({ to: "/app" });
+        window.location.href = "/app";
       } finally {
         setPendingAction(null);
       }
