@@ -47,21 +47,6 @@ function isToolPartDone(part: ChatMessagePart) {
   );
 }
 
-function getToolLabel(toolName: string) {
-  switch (toolName) {
-    case "get_social_media_workspace":
-      return "Check your Notion workspace";
-    case "set_social_media_workspace":
-      return "Save your Notion workspace";
-    case "get_social_posting_accounts":
-      return "Check your social accounts";
-    case "publish_social_post":
-      return "Publish your post";
-    default:
-      return toolName;
-  }
-}
-
 function getApprovalStatusLabel(part: ChatMessagePart) {
   if (!("approval" in part) || !part.approval) {
     return null;
@@ -245,7 +230,7 @@ function MessagePart({
               <AccordionItem value="tool">
                 <AccordionTrigger className="flex items-center gap-1">
                   <PartStatusIcon isPending={isPending} icon={Wrench01Icon} />
-                  Working on: {getToolLabel(getToolName(part))}
+                  Working on: {getToolName(part)}
                 </AccordionTrigger>
                 <AccordionContent>
                   {"input" in part && part.input !== undefined ? (
