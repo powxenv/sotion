@@ -5,7 +5,7 @@ import {
 import { useChat } from "@ai-sdk/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SentIcon, AiBrain01Icon } from "@hugeicons/core-free-icons";
+import { SentIcon, AiBrain01Icon, CleanIcon } from "@hugeicons/core-free-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ChatMessageList from "#/components/chat-message-list";
 import McpDialog from "#/components/mcp-dialog";
@@ -127,12 +127,12 @@ function App() {
 
   const { messages, sendMessage, status, error, addToolApprovalResponse } =
     useChat<ChatMessage>({
-    id: currentChat.id,
-    messages: initialMessages,
-    transport: chatTransport,
-    sendAutomaticallyWhen:
-      lastAssistantMessageIsCompleteWithApprovalResponses,
-  });
+      id: currentChat.id,
+      messages: initialMessages,
+      transport: chatTransport,
+      sendAutomaticallyWhen:
+        lastAssistantMessageIsCompleteWithApprovalResponses,
+    });
   const isChatDisabled =
     !mcpStatus.connected || !selectedModel || status !== "ready";
 
@@ -265,6 +265,7 @@ function App() {
             )}
           </div>
         </ScrollArea>
+
         <div className="p-4 transition-all focus-within:border-primary border bg-background rounded-md flex flex-col gap-2 max-w-3xl mx-auto absolute bottom-6 left-1/2 -translate-x-1/2 w-full shadow-lg shadow-black/4">
           <textarea
             value={input}
@@ -343,16 +344,23 @@ function App() {
                 </ComboboxContent>
               </Combobox>
             </div>
-            <Button
-              disabled={isChatDisabled || input.trim().length === 0}
-              onClick={() => void submitMessage(input)}
-            >
-              {status === "submitted" || status === "streaming" ? (
-                <Spinner />
-              ) : (
-                <HugeiconsIcon icon={SentIcon} />
+            <div className="flex gap-1">
+              {messages.length > 0 && (
+                <Button variant="destructive">
+                  <HugeiconsIcon icon={CleanIcon} /> Clear Chat
+                </Button>
               )}
-            </Button>
+              <Button
+                disabled={isChatDisabled || input.trim().length === 0}
+                onClick={() => void submitMessage(input)}
+              >
+                {status === "submitted" || status === "streaming" ? (
+                  <Spinner />
+                ) : (
+                  <HugeiconsIcon icon={SentIcon} />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </main>
