@@ -8,7 +8,7 @@ import {
 } from "ai";
 import { Streamdown } from "streamdown";
 import { Spinner } from "#/components/ui/spinner";
-import { cn } from "#/lib/utils";
+import { cn, plainTextToHtml } from "#/lib/utils";
 import type { ChatMessage, ChatMessagePart } from "#/services/chat/agent";
 import {
   Accordion,
@@ -19,6 +19,16 @@ import {
 import { Button } from "#/components/ui/button";
 import { Idea01Icon, Wrench01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "./ui/badge";
 
 function toJson<T>(value: T) {
   return JSON.stringify(value, null, 2);
@@ -31,6 +41,23 @@ function isToolPartDone(part: ChatMessagePart) {
       part.state === "output-error" ||
       part.state === "output-denied")
   );
+}
+
+function getPublishToolInput(input: unknown) {
+  if (!input || typeof input !== "object") {
+    return null;
+  }
+
+  const value = input as {
+    providerId?: unknown;
+    text?: unknown;
+  };
+
+  return {
+    providerId:
+      typeof value.providerId === "string" ? value.providerId : undefined,
+    text: typeof value.text === "string" ? value.text : "",
+  };
 }
 
 function PartStatusIcon({
@@ -112,74 +139,142 @@ function MessagePart({
   if (isToolUIPart(part)) {
     const isPending =
       isLastMessage && isLastPart && isStreaming && !isToolPartDone(part);
+    const publishInput =
+      "input" in part ? getPublishToolInput(part.input) : null;
 
     return (
       <>
-        <Accordion>
-          <AccordionItem value="tool">
-            <AccordionTrigger className="flex items-center gap-1">
-              <PartStatusIcon isPending={isPending} icon={Wrench01Icon} />
-              Calling {getToolName(part)}
-            </AccordionTrigger>
-            <AccordionContent>
-              {"input" in part && part.input !== undefined ? (
-                <div className="mt-3">
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Input
+        {getToolName(part) === "publish_social_post" && publishInput ? (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Approve Publish ke {publishInput.providerId}
+                </CardTitle>
+                <CardDescription>
+                  Silakan review konten yang akan diuplaod dibawah ini, approve
+                  atau deny
+                </CardDescription>
+                <CardAction>
+                  <Badge>
+                    {part.approval && "approved" in part.approval
+                      ? part.approval.approved
+                        ? "approved"
+                        : "denied"
+                      : "requested"}
+                  </Badge>
+                </CardAction>
+              </CardHeader>
+              <CardContent>
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: plainTextToHtml(publishInput.text),
+                  }}
+                ></span>
+                {"errorText" in part && part.errorText ? (
+                  <p className="mt-3 text-sm text-destructive">
+                    {part.errorText}
                   </p>
-                  <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
-                    {toJson(part.input)}
-                  </pre>
-                </div>
+                ) : null}
+              </CardContent>
+              {"approval" in part && part.approval ? (
+                <>
+                  {part.state === "approval-requested" &&
+                  onToolApprovalResponse ? (
+                    <CardFooter className="flex-col gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          void onToolApprovalResponse(part.approval.id, true)
+                        }
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() =>
+                          void onToolApprovalResponse(part.approval.id, false)
+                        }
+                      >
+                        Deny
+                      </Button>
+                    </CardFooter>
+                  ) : null}
+                </>
               ) : null}
-              {"output" in part && part.output !== undefined ? (
-                <div className="mt-3">
-                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    Output
-                  </p>
-                  <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
-                    {toJson(part.output)}
-                  </pre>
-                </div>
-              ) : null}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-        {"approval" in part && part.approval ? (
-          <div className="flex flex-wrap items-center gap-2">
-            {part.state === "approval-requested" && onToolApprovalResponse ? (
-              <>
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    void onToolApprovalResponse(part.approval.id, true)
-                  }
-                >
-                  Approve {getToolName(part)}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() =>
-                    void onToolApprovalResponse(part.approval.id, false)
-                  }
-                >
-                  Deny {getToolName(part)}
-                </Button>
-              </>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Accordion>
+              <AccordionItem value="tool">
+                <AccordionTrigger className="flex items-center gap-1">
+                  <PartStatusIcon isPending={isPending} icon={Wrench01Icon} />
+                  Calling {getToolName(part)}
+                </AccordionTrigger>
+                <AccordionContent>
+                  {"input" in part && part.input !== undefined ? (
+                    <div className="mt-3">
+                      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Input
+                      </p>
+                      <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
+                        {toJson(part.input)}
+                      </pre>
+                    </div>
+                  ) : null}
+                  {"output" in part && part.output !== undefined ? (
+                    <div className="mt-3">
+                      <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        Output
+                      </p>
+                      <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
+                        {toJson(part.output)}
+                      </pre>
+                    </div>
+                  ) : null}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+            {"approval" in part && part.approval ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {part.state === "approval-requested" &&
+                onToolApprovalResponse ? (
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        void onToolApprovalResponse(part.approval.id, true)
+                      }
+                    >
+                      Approve {getToolName(part)}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() =>
+                        void onToolApprovalResponse(part.approval.id, false)
+                      }
+                    >
+                      Deny {getToolName(part)}
+                    </Button>
+                  </>
+                ) : null}
+                <p className="text-xs text-muted-foreground">
+                  {"approved" in part.approval
+                    ? part.approval.approved
+                      ? "approved"
+                      : "denied"
+                    : "requested"}
+                </p>
+              </div>
             ) : null}
-            <p className="text-xs text-muted-foreground">
-              {"approved" in part.approval
-                ? part.approval.approved
-                  ? "approved"
-                  : "denied"
-                : "requested"}
-            </p>
-          </div>
-        ) : null}
-        {"errorText" in part && part.errorText ? (
-          <p className="mt-3 text-sm text-destructive">{part.errorText}</p>
-        ) : null}
+            {"errorText" in part && part.errorText ? (
+              <p className="mt-3 text-sm text-destructive">{part.errorText}</p>
+            ) : null}
+          </>
+        )}
       </>
     );
   }
