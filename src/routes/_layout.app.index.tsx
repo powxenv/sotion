@@ -58,12 +58,12 @@ const CHAT_MODEL_STORAGE_KEY = "chat:selected-model";
 
 const suggestedPrompts = [
   "Help me connect my X account",
-  "Help me connect my LinkedIn",
-  "Show me what I've posted",
-  "Create a posting plan for me",
-  "Give me content ideas",
-  "Write a LinkedIn post for me",
-  "Turn my content into an X post",
+  "Connect my LinkedIn account",
+  "Show my connected social accounts",
+  "Create a simple posting plan for this week",
+  "Give me post ideas based on my notes",
+  "Write a LinkedIn post from my draft",
+  "Turn my notes into an X post",
 ] as const;
 
 export const Route = createFileRoute("/_layout/app/")({
@@ -162,6 +162,15 @@ function App() {
     !hasConfiguredProvider ||
     !selectedModel ||
     status !== "ready";
+  const chatPlaceholder = !mcpStatus.connected
+    ? "Reconnect Notion to continue"
+    : !hasConfiguredProvider
+      ? "Add an AI provider to start chatting"
+      : !selectedModel
+        ? "Choose an AI model to continue"
+        : status !== "ready"
+          ? "Sotion is working..."
+          : "Ask Sotion to help with your content";
 
   useEffect(() => {
     const storedModel = window.localStorage.getItem(CHAT_MODEL_STORAGE_KEY);
@@ -295,9 +304,12 @@ function App() {
                   src="/notioly/Summer-Collection n.4.svg"
                   alt=""
                 />
-                <h1 className="text-3xl font-bold mb-2">Welcome!</h1>
+                <h1 className="text-3xl font-bold mb-2">
+                  What would you like to work on?
+                </h1>
                 <p className="text-muted-foreground max-w-sm text-center">
-                  Try typing below or click quick prompts to get started
+                  Ask Sotion to plan posts, rewrite drafts, or help you connect
+                  your accounts.
                 </p>
                 <div className="flex flex-wrap gap-1 mt-6 max-w-2xl justify-center">
                   {suggestedPrompts.map((prompt) => (
@@ -329,7 +341,7 @@ function App() {
           <textarea
             value={input}
             disabled={isChatDisabled}
-            placeholder="Type here..."
+            placeholder={chatPlaceholder}
             onChange={(event) => setInput(event.currentTarget.value)}
             onKeyDown={(event) => {
               if (
@@ -360,14 +372,14 @@ function App() {
               >
                 <ComboboxInput
                   disabled={!mcpStatus.connected || !hasConfiguredProvider}
-                  placeholder="Select a model"
+                  placeholder="Choose an AI model"
                 >
                   <InputGroupAddon>
                     <HugeiconsIcon icon={AiBrain01Icon} />
                   </InputGroupAddon>
                 </ComboboxInput>
                 <ComboboxContent>
-                  <ComboboxEmpty>No models found.</ComboboxEmpty>
+                  <ComboboxEmpty>No models available.</ComboboxEmpty>
                   <ComboboxList>
                     {(group, index) => (
                       <ComboboxGroup key={group.value} items={group.items}>
@@ -377,7 +389,7 @@ function App() {
                             group.items[0].providerId,
                           ) ? (
                             <span className="text-xs text-muted-foreground">
-                              Not set up
+                              Not added
                             </span>
                           ) : null}
                         </ComboboxLabel>
@@ -415,7 +427,7 @@ function App() {
                   ) : (
                     <HugeiconsIcon icon={CleanIcon} />
                   )}{" "}
-                  Clear Chat
+                  New chat
                 </Button>
               )}
               <Button

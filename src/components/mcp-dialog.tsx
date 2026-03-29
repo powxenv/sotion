@@ -23,13 +23,15 @@ export default function McpDialog({ status }: NotionMcpDialogProps) {
       <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Reconnect Workspace
+            Reconnect Notion
           </DialogTitle>
           <DialogDescription className="space-y-3">
-            <p>Your Notion workspace is no longer connected.</p>
             <p>
-              Reconnect it so Sotion can keep accessing your pages and continue
-              working with your workspace.
+              Sotion can no longer reach your Notion workspace.
+            </p>
+            <p>
+              Reconnect it so Sotion can keep using your notes, drafts, and
+              content plans.
             </p>
             <p>
               <a
@@ -38,7 +40,7 @@ export default function McpDialog({ status }: NotionMcpDialogProps) {
                 rel="noreferrer"
                 className="underline"
               >
-                Learn more about Notion MCP
+                Learn how the Notion connection works
               </a>
               .
             </p>
@@ -55,7 +57,7 @@ export default function McpDialog({ status }: NotionMcpDialogProps) {
                 <a href="/api/integrations/notion/connect?returnTo=/app" />
               }
             >
-              Reconnect Workspace
+              Reconnect Notion
             </Button>
           ) : null}
         </DialogFooter>

@@ -29,14 +29,14 @@ export const DEFAULT_MCP_SERVER_PRESETS = [
         id: "deep-search",
         label: "Search more deeply",
         description:
-          "Use a more detailed search when a simple search is not enough.",
+          "Run a broader search when a quick search is not enough.",
         defaultEnabled: false,
         toolNames: ["web_search_advanced_exa"],
       },
       {
         id: "open-pages",
         label: "Open pages",
-        description: "Read the content of a page after something useful is found.",
+        description: "Open and read a page after Sotion finds something useful.",
         defaultEnabled: true,
         toolNames: ["crawling_exa"],
       },
@@ -64,7 +64,7 @@ export const DEFAULT_MCP_SERVER_PRESETS = [
       {
         id: "open-pages",
         label: "Open pages",
-        description: "Read page content after a useful result is found.",
+        description: "Open and read a page after Sotion finds something useful.",
         defaultEnabled: true,
         toolNames: ["tavily-extract"],
       },

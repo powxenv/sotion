@@ -11,7 +11,7 @@ function PrivacyPage() {
   return (
     <LegalDocument
       title="Privacy Policy"
-      summary="This Privacy Policy explains how Sotion collects, uses, stores, and shares information when you use our open-source, AI-powered content operations and social publishing service."
+      summary="This Privacy Policy explains what information Sotion collects, how we use it, and how we handle it when you use the hosted service."
       lastUpdated={LAST_UPDATED}
     >
       <h2>1. Scope</h2>

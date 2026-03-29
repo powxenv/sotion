@@ -8,6 +8,10 @@ import {
 } from "ai";
 import { Streamdown } from "streamdown";
 import { Spinner } from "#/components/ui/spinner";
+import {
+  getSocialConnectionProvider,
+  isSocialConnectionProviderId,
+} from "#/lib/social-connections";
 import { cn, plainTextToHtml } from "#/lib/utils";
 import type { ChatMessage, ChatMessagePart } from "#/services/chat/agent";
 import {
@@ -41,6 +45,41 @@ function isToolPartDone(part: ChatMessagePart) {
       part.state === "output-error" ||
       part.state === "output-denied")
   );
+}
+
+function getToolLabel(toolName: string) {
+  switch (toolName) {
+    case "get_social_media_workspace":
+      return "Check your Notion workspace";
+    case "set_social_media_workspace":
+      return "Save your Notion workspace";
+    case "get_social_posting_accounts":
+      return "Check your social accounts";
+    case "publish_social_post":
+      return "Publish your post";
+    default:
+      return toolName;
+  }
+}
+
+function getApprovalStatusLabel(part: ChatMessagePart) {
+  if (!("approval" in part) || !part.approval) {
+    return null;
+  }
+
+  if ("approved" in part.approval) {
+    return part.approval.approved ? "Approved" : "Not approved";
+  }
+
+  return "Waiting for approval";
+}
+
+function getPublishProviderLabel(providerId?: string) {
+  if (!providerId || !isSocialConnectionProviderId(providerId)) {
+    return "this account";
+  }
+
+  return getSocialConnectionProvider(providerId).label;
 }
 
 function getPublishToolInput(input: unknown) {
@@ -124,7 +163,7 @@ function MessagePart({
         <AccordionItem value="reasoning">
           <AccordionTrigger className="flex items-center gap-1">
             <PartStatusIcon isPending={isPending} icon={Idea01Icon} />
-            Reasoning
+            How Sotion is thinking
           </AccordionTrigger>
           <AccordionContent>
             <MessageMarkdown className="text-muted-foreground">
@@ -149,20 +188,15 @@ function MessagePart({
             <Card>
               <CardHeader>
                 <CardTitle>
-                  Approve Publish ke {publishInput.providerId}
+                  Review post for{" "}
+                  {getPublishProviderLabel(publishInput.providerId)}
                 </CardTitle>
                 <CardDescription>
-                  Silakan review konten yang akan diuplaod dibawah ini, approve
-                  atau deny
+                  Review this post before Sotion publishes it. Approve it to
+                  continue, or choose not to publish.
                 </CardDescription>
                 <CardAction>
-                  <Badge>
-                    {part.approval && "approved" in part.approval
-                      ? part.approval.approved
-                        ? "approved"
-                        : "denied"
-                      : "requested"}
-                  </Badge>
+                  <Badge>{getApprovalStatusLabel(part)}</Badge>
                 </CardAction>
               </CardHeader>
               <CardContent>
@@ -188,7 +222,7 @@ function MessagePart({
                           void onToolApprovalResponse(part.approval.id, true)
                         }
                       >
-                        Approve
+                        Publish this post
                       </Button>
                       <Button
                         size="sm"
@@ -197,7 +231,7 @@ function MessagePart({
                           void onToolApprovalResponse(part.approval.id, false)
                         }
                       >
-                        Deny
+                        Don't publish
                       </Button>
                     </CardFooter>
                   ) : null}
@@ -211,7 +245,7 @@ function MessagePart({
               <AccordionItem value="tool">
                 <AccordionTrigger className="flex items-center gap-1">
                   <PartStatusIcon isPending={isPending} icon={Wrench01Icon} />
-                  Calling {getToolName(part)}
+                  Working on: {getToolLabel(getToolName(part))}
                 </AccordionTrigger>
                 <AccordionContent>
                   {"input" in part && part.input !== undefined ? (
@@ -248,7 +282,7 @@ function MessagePart({
                         void onToolApprovalResponse(part.approval.id, true)
                       }
                     >
-                      Approve {getToolName(part)}
+                      Approve
                     </Button>
                     <Button
                       size="sm"
@@ -257,16 +291,12 @@ function MessagePart({
                         void onToolApprovalResponse(part.approval.id, false)
                       }
                     >
-                      Deny {getToolName(part)}
+                      Deny
                     </Button>
                   </>
                 ) : null}
                 <p className="text-xs text-muted-foreground">
-                  {"approved" in part.approval
-                    ? part.approval.approved
-                      ? "approved"
-                      : "denied"
-                    : "requested"}
+                  {getApprovalStatusLabel(part)}
                 </p>
               </div>
             ) : null}
@@ -387,7 +417,7 @@ export default function ChatMessageList({
       {status === "streaming" || status === "submitted" ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Spinner />
-          Sotion is thinking...
+          Sotion is working...
         </div>
       ) : null}
 

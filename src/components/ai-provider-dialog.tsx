@@ -27,23 +27,22 @@ export default function AiProviderDialog({
       <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Set Up AI Provider
+            Add an AI provider to continue
           </DialogTitle>
           <DialogDescription className="space-y-3">
-            <p>No AI provider API key is configured yet.</p>
             <p>
-              Add at least one API key so Sotion can generate responses and use
-              chat normally.
+              Sotion needs at least one AI provider key before it can reply in
+              chat.
             </p>
             <p>
-              Open the <strong>AI Providers</strong> menu in the header to add
-              a key.
+              Open <strong>AI providers</strong> to add a key and finish your
+              setup.
             </p>
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button onClick={() => navigate({ to: "/app/providers" })}>
-            Open AI Providers
+            Open AI providers
           </Button>
         </DialogFooter>
       </DialogContent>

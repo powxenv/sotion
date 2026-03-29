@@ -33,12 +33,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Sotion | AI Agent for Social Media Content",
+        title: "Sotion | Social Content Assistant for Notion",
       },
       {
         name: "description",
         content:
-          "Sotion is an AI agent for text-based social media work. It turns your Notion workspace into ready-to-use context for writing, planning, and publishing content.",
+          "Sotion helps you turn your Notion workspace into ready-to-post social content, with planning, writing, and publishing support in one place.",
       },
       {
         name: "theme-color",
@@ -46,12 +46,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         property: "og:title",
-        content: "Sotion | AI Agent for Social Media Content",
+        content: "Sotion | Social Content Assistant for Notion",
       },
       {
         property: "og:description",
         content:
-          "Sotion is an AI agent for text-based social media work. Connect your Notion workspace, chat naturally, and let Sotion help manage content and publishing.",
+          "Connect Notion, chat naturally, and let Sotion help you plan, write, and publish social content from one workspace.",
       },
       {
         property: "og:type",
@@ -67,12 +67,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
       {
         name: "twitter:title",
-        content: "Sotion | AI Agent for Social Media Content",
+        content: "Sotion | Social Content Assistant for Notion",
       },
       {
         name: "twitter:description",
         content:
-          "Connect Notion, add your AI provider, and use Sotion to manage text-based social media content in one place.",
+          "Connect Notion, add your AI provider, and use Sotion to plan, write, and publish social content in one place.",
       },
       {
         name: "twitter:image",

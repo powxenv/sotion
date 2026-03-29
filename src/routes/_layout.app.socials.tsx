@@ -109,39 +109,42 @@ function getSearchFeedback(search: {
     case "email_doesn't_match":
     case "email_doesnt_match":
     case "email_mismatch":
-      description = "This account uses a different email.";
+      description = "That account uses a different email address.";
       break;
     case "account_already_linked_to_different_user":
     case "social_account_already_linked":
     case "linked_account_already_exists":
-      description = "This account is already connected to another user.";
+      description = "That account is already connected to another user.";
       break;
     case "unable_to_link_account":
-      description = "This account could not be connected right now. Please try again.";
+      description =
+        "We couldn't connect that account right now. Please try again.";
       break;
     case "email_not_found":
     case "email_is_missing":
     case "user_email_not_found":
-      description = "We could not get an email from this account.";
+      description = "We couldn't get an email address from that account.";
       break;
     case "unable_to_get_user_info":
     case "user_info_is_missing":
     case "failed_to_get_user_info":
-      description = "We could not read this account. Please try again.";
+      description =
+        "We couldn't read that account right now. Please try again.";
       break;
     case "invalid_code":
     case "oauth_code_verification_failed":
     case "no_code":
-      description = "The connection session expired. Please try again.";
+      description = "This connection link expired. Please try again.";
       break;
     case "oauth_provider_not_found":
     case "provider_not_found":
-      description = "This service is not available right now.";
+      description = "This connection isn't available right now.";
       break;
     case "no_callback_url":
     case "invalid_callback_url":
     case "invalid_error_callback_url":
-      description = "There is a connection setup problem.";
+      description =
+        "There is a problem with the connection setup. Please try again later.";
       break;
     case "access_denied":
       description = "The connection was canceled before it finished.";
@@ -151,8 +154,8 @@ function getSearchFeedback(search: {
         errorDescription && errorDescription.length > 0
           ? errorDescription
           : errorCode
-            ? "This account could not be connected. Please try again."
-            : "This account could not be connected. Please try again.";
+            ? "We couldn't connect that account. Please try again."
+            : "We couldn't connect that account. Please try again.";
   }
 
   return {
@@ -218,7 +221,7 @@ function SocialConnectionCard(props: {
         description:
           error instanceof Error
             ? error.message
-            : "The provider could not start the linking flow.",
+            : "We couldn't start the connection. Please try again.",
       });
       setPendingAction("idle");
     }
@@ -240,7 +243,7 @@ function SocialConnectionCard(props: {
     } catch {
       setFeedback({
         title: `Could not disconnect ${provider.label}`,
-        description: "The linked account could not be removed. Try again.",
+        description: "We couldn't remove that connection. Please try again.",
       });
     } finally {
       setPendingAction("idle");
@@ -262,7 +265,7 @@ function SocialConnectionCard(props: {
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-lg font-semibold">{provider.label}</h2>
             {needsReauthorization ? (
-              <Badge variant="destructive">Reauthorization required</Badge>
+              <Badge variant="destructive">Reconnect needed</Badge>
             ) : null}
             {isUnavailable ? (
               <Badge variant="outline">
@@ -294,9 +297,11 @@ function SocialConnectionCard(props: {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No account connected.
+              No account connected yet.
             </p>
           )}
+
+          <p className="text-sm text-muted-foreground">{provider.summary}</p>
 
           {feedback ? (
             <div className="rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-sm text-destructive">
@@ -314,12 +319,14 @@ function SocialConnectionCard(props: {
                   onClick={disconnectAccount}
                 >
                   {pendingAction === "disconnecting" ? <Spinner /> : null}
-                  Disconnect
+                  Remove connection
                 </Button>
               ) : (
                 <Button disabled={isPending} onClick={connectAccount}>
                   {pendingAction === "connecting" ? <Spinner /> : null}
-                  {needsReauthorization ? "Reconnect" : "Connect"}
+                  {needsReauthorization
+                    ? "Reconnect account"
+                    : "Connect account"}
                 </Button>
               )}
             </div>
@@ -342,11 +349,10 @@ function SocialConnectionsPage() {
       <div className="inner">
         <div className="flex flex-col gap-8">
           <div className="space-y-3">
-            <h1 className="text-4xl font-bold">Social Connections</h1>
+            <h1 className="text-4xl font-bold">Social accounts</h1>
             <p className="max-w-2xl text-muted-foreground">
-              Connect the text-based social accounts you want to manage from
-              this Sotion workspace. Each connection is attached to the user who
-              is currently signed in.
+              Connect the accounts you want Sotion to help manage or publish
+              to. Each connection belongs to the signed-in user.
             </p>
           </div>
 

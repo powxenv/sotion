@@ -90,11 +90,11 @@ function McpSettingsPage() {
       <div className="inner">
         <div className="flex flex-col gap-8">
           <div className="space-y-3">
-            <h1 className="text-4xl font-bold">MCP Servers</h1>
+            <h1 className="text-4xl font-bold">Online sources</h1>
             <p className="max-w-3xl text-muted-foreground">
-              Choose which online sources Sotion can use when it needs to look
-              something up. You can turn each one on or off anytime and decide
-              what you want it to help with.
+              Choose which web sources Sotion can use when it needs fresh
+              information. You can turn each one on or off at any time and
+              decide how Sotion should use each source.
             </p>
           </div>
 
@@ -218,7 +218,7 @@ function ConfiguredMcpRow({
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-base font-medium">{setting.label}</h2>
-            {setting.hasSecret ? <Badge variant="outline">Ready</Badge> : null}
+            {setting.hasSecret ? <Badge variant="outline">Key added</Badge> : null}
           </div>
 
           <p className="max-w-2xl text-sm text-muted-foreground">
@@ -237,10 +237,9 @@ function ConfiguredMcpRow({
 
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{setting.label} settings</DialogTitle>
+                <DialogTitle>{setting.label} setup</DialogTitle>
                 <DialogDescription>
-                  Add your API key and choose what you want Sotion to use this
-                  source for.
+                  Add your API key and choose how Sotion can use this source.
                 </DialogDescription>
               </DialogHeader>
 
@@ -257,11 +256,11 @@ function ConfiguredMcpRow({
                           id={inputId}
                           type="password"
                           aria-invalid={fieldState.invalid}
-                          placeholder={`Enter your ${setting.label} API key`}
+                          placeholder={`Paste your ${setting.label} API key`}
                         />
                         {setting.hasSecret ? (
                           <FieldDescription>
-                            Leave this empty if you want to keep the key you
+                            Leave this blank if you want to keep the key you
                             already saved.
                           </FieldDescription>
                         ) : null}
@@ -274,10 +273,11 @@ function ConfiguredMcpRow({
 
                   <FieldGroup className="gap-4">
                     <div className="space-y-1">
-                      <p className="text-sm font-medium">What should it help with?</p>
+                      <p className="text-sm font-medium">
+                        How should Sotion use it?
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        Pick the kinds of help you want Sotion to use from this
-                        source.
+                        Choose the kinds of help you want from this source.
                       </p>
                     </div>
 
@@ -349,7 +349,7 @@ function ConfiguredMcpRow({
                       />
                     }
                   >
-                    Get API key
+                    Open key page
                     <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-4" />
                   </Button>
                 </div>

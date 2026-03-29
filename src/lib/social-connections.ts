@@ -16,7 +16,7 @@ export const SOCIAL_CONNECTION_PROVIDERS: readonly SocialConnectionProviderDefin
     initials: "X",
     logoPath: "/social-icons/x.svg",
     summary:
-      "Link your X account with publish-ready scopes so Sotion can publish text posts later.",
+      "Connect your X account so Sotion can help prepare and publish text posts.",
     providerType: "social",
     availability: "available",
   },
@@ -26,7 +26,7 @@ export const SOCIAL_CONNECTION_PROVIDERS: readonly SocialConnectionProviderDefin
     initials: "in",
     logoPath: "/social-icons/linkedin.svg",
     summary:
-      "Connect LinkedIn with member publishing access so Sotion can publish text updates on your behalf later.",
+      "Connect LinkedIn so Sotion can help prepare and publish text updates.",
     providerType: "social",
     availability: "available",
   },
@@ -36,10 +36,10 @@ export const SOCIAL_CONNECTION_PROVIDERS: readonly SocialConnectionProviderDefin
     initials: "@",
     logoPath: "/social-icons/threads.svg",
     summary:
-      "Threads connection is currently unavailable.",
+      "Threads is not available yet.",
     providerType: "oauth2",
     availability: "disabled",
-    availabilityLabel: "Currently unavailable",
+    availabilityLabel: "Not available yet",
   },
 ];
 

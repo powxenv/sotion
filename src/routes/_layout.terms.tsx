@@ -11,7 +11,7 @@ function TermsPage() {
   return (
     <LegalDocument
       title="Terms of Service"
-      summary="These Terms govern your use of Sotion, an open-source AI agent for managing content operations and publishing to connected social media platforms."
+      summary="These Terms explain the rules for using Sotion and any third-party services you connect to it."
       lastUpdated={LAST_UPDATED}
     >
       <h2>1. Acceptance of These Terms</h2>

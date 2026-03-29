@@ -85,7 +85,7 @@ const Header = () => {
                   render={<Link to="/app/socials" />}
                 >
                   <HugeiconsIcon icon={Link01Icon} />
-                  <span>Social Connections</span>
+                  <span>Social Accounts</span>
                 </Button>
 
                 <Button
@@ -105,7 +105,7 @@ const Header = () => {
                   render={<Link to="/app/mcp" />}
                 >
                   <HugeiconsIcon icon={AiBrain01Icon} />
-                  <span>MCP Servers</span>
+                  <span>Online Sources</span>
                 </Button>
 
                 <DropdownMenu>
@@ -139,7 +139,7 @@ const Header = () => {
                           />
                         }
                       >
-                        Go to Notion <HugeiconsIcon icon={ArrowUpRight01Icon} />
+                        Open Notion <HugeiconsIcon icon={ArrowUpRight01Icon} />
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
@@ -168,7 +168,7 @@ const Header = () => {
                   ) : (
                     <HugeiconsIcon icon={Notion02Icon} />
                   )}
-                  Sign In with Notion
+                  Continue with Notion
                 </Button>
               </>
             )}

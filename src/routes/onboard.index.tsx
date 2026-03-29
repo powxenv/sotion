@@ -121,6 +121,10 @@ function OnboardPage() {
   const savedProviders = new Set(aiProviderSettings);
   const isConnectComplete = isAiProviderStep || isFinishStep;
   const isAiProviderComplete = isFinishStep;
+  const providerCountLabel =
+    aiProviderSettings.length === 1
+      ? "1 provider added"
+      : `${aiProviderSettings.length} providers added`;
 
   return (
     <main className="min-h-lvh flex items-center py-10">
@@ -154,11 +158,11 @@ function OnboardPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold">
-                      Connect to Your Workspace
+                      Connect your Notion workspace
                     </h3>
                     <p>
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Sequi odit.
+                      Let Sotion use the notes, drafts, and content ideas you
+                      already keep in Notion.
                     </p>
                   </div>
                 </div>
@@ -183,10 +187,10 @@ function OnboardPage() {
                     <div className="absolute left-1/2 -translate-x-1/2 border-zinc-500 border-r border-dashed h-13 bottom-0 translate-y-full"></div>
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold">Add AI Providers</h3>
+                    <h3 className="text-lg font-semibold">Add an AI provider</h3>
                     <p>
-                      Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                      Sequi odit.
+                      Add at least one provider so Sotion can help write,
+                      rewrite, and organize your content.
                     </p>
                   </div>
                 </div>
@@ -199,7 +203,10 @@ function OnboardPage() {
                   >
                     <HugeiconsIcon icon={Flag02Icon} strokeWidth={2} />
                   </div>
-                  <h3 className="text-lg font-semibold">Finish!</h3>
+                  <div>
+                    <h3 className="text-lg font-semibold">Start using Sotion</h3>
+                    <p>Review your setup and open your workspace.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -212,23 +219,23 @@ function OnboardPage() {
                     <span className="font-medium text-muted-foreground">
                       Step 1 of 3
                     </span>
-                    <h2 className="text-4xl font-bold">Connect Notion MCP</h2>
+                    <h2 className="text-4xl font-bold">
+                      Connect your Notion workspace
+                    </h2>
                     <div className="text-muted-foreground space-y-3">
                       <p>
-                        Sotion helps you manage your social media workflow, from
-                        shaping ideas into content to getting posts ready to
-                        publish.
+                        Sotion works best when it can see the pages where you
+                        plan, draft, and organize your content.
                       </p>
                       <p>
-                        If your ideas, drafts, and content notes already live in
-                        Notion, connecting your workspace gives Sotion the
-                        context it needs to work from the same source as you.
+                        If your ideas already live in Notion, connect your
+                        workspace so Sotion can work from the same source as
+                        you.
                       </p>
                       <p>
-                        After that, you can simply chat with Sotion. It can help
-                        you pull from your Notion pages, turn rough notes into
-                        posts, and move faster without copying things around
-                        manually.
+                        Once connected, you can ask Sotion to pull in your
+                        notes, turn rough drafts into posts, and help you move
+                        faster without copying everything by hand.
                       </p>
                       <p>
                         <a
@@ -237,7 +244,7 @@ function OnboardPage() {
                           rel="noreferrer"
                           className="underline"
                         >
-                          Learn more about Notion MCP
+                          Learn how the Notion connection works
                         </a>
                         .
                       </p>
@@ -252,8 +259,8 @@ function OnboardPage() {
                       }
                     >
                       {mcpStatus.hasConnectedBefore
-                        ? "Reconnect Workspace"
-                        : "Connect Workspace"}
+                        ? "Reconnect Notion"
+                        : "Connect Notion"}
                     </Button>
                   </div>
                 </div>
@@ -266,16 +273,16 @@ function OnboardPage() {
                   <span className="font-medium text-muted-foreground">
                     Step 2 of 3
                   </span>
-                  <h2 className="text-4xl font-bold">Set up AI provider</h2>
+                  <h2 className="text-4xl font-bold">Add an AI provider</h2>
                   <div className="text-muted-foreground space-y-3">
                     <p>Your Notion workspace is connected.</p>
                     <p>
-                      Add at least one AI provider API key so Sotion can write,
-                      refine, and manage your content through chat.
+                      Add at least one AI provider key so Sotion can help you
+                      write, rewrite, and organize content in chat.
                     </p>
                     <p>
-                      Your API keys are stored securely and encrypted end to
-                      end.
+                      You can add more than one provider and switch models
+                      later. Saved keys are stored securely and encrypted.
                     </p>
                   </div>
                 </div>
@@ -333,8 +340,8 @@ function OnboardPage() {
                     </Button>
                     <p className="text-sm text-muted-foreground">
                       {hasSavedProvider
-                        ? "At least one provider is ready."
-                        : "Save at least one API key to continue."}
+                        ? "At least one provider is ready to use."
+                        : "Add at least one provider to continue."}
                     </p>
                   </div>
                 </div>
@@ -349,28 +356,29 @@ function OnboardPage() {
                   </span>
                   <h2 className="text-4xl font-bold">Finish setup</h2>
                   <div className="text-muted-foreground space-y-3">
-                    <p>Your workspace is connected and at least one AI provider is ready.</p>
                     <p>
-                      You can go back if you want to reconnect Notion or add more
-                      API keys before entering the app.
+                      Your Notion workspace is connected and your AI setup is
+                      ready.
                     </p>
                     <p>
-                      When you continue, onboarding will be marked complete and
-                      you will land in your workspace.
+                      You can go back if you want to reconnect Notion or add
+                      more providers before you start.
+                    </p>
+                    <p>
+                      When you continue, setup will be marked complete and
+                      you&apos;ll open your Sotion workspace.
                     </p>
                   </div>
                 </div>
 
                 <div className="rounded-xl border bg-muted/40 p-5 space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-medium">Notion workspace</span>
+                    <span className="font-medium">Notion</span>
                     <Badge variant="outline">Connected</Badge>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-medium">AI provider</span>
-                    <Badge variant="outline">
-                      {aiProviderSettings.length} saved
-                    </Badge>
+                    <span className="font-medium">AI providers</span>
+                    <Badge variant="outline">{providerCountLabel}</Badge>
                   </div>
                 </div>
 
@@ -393,7 +401,7 @@ function OnboardPage() {
                     Back
                   </Button>
                   <Button onClick={completeSetup} disabled={isPending}>
-                    Continue to App
+                    Open workspace
                   </Button>
                 </div>
               </div>
@@ -444,7 +452,9 @@ function AiProviderForm({
     } catch (error) {
       form.setError("apiKey", {
         message:
-          error instanceof Error ? error.message : "Failed to save API key.",
+          error instanceof Error
+            ? error.message
+            : "We couldn't save this API key.",
       });
     }
   };
@@ -463,7 +473,9 @@ function AiProviderForm({
     } catch (error) {
       form.setError("apiKey", {
         message:
-          error instanceof Error ? error.message : "Failed to remove API key.",
+          error instanceof Error
+            ? error.message
+            : "We couldn't remove this API key.",
       });
     } finally {
       setIsRemoving(false);
@@ -480,10 +492,10 @@ function AiProviderForm({
           rel="noreferrer"
           className="text-sm underline text-muted-foreground inline-flex items-center gap-1"
         >
-          Get API key
+          Open key page
           <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-3.5" />
         </a>
-        {isSaved ? <Badge variant="outline">Saved</Badge> : null}
+        {isSaved ? <Badge variant="outline">Added</Badge> : null}
       </AccordionTrigger>
       <AccordionContent>
         <form className="p-1" onSubmit={form.handleSubmit(onSubmit)}>
@@ -499,14 +511,14 @@ function AiProviderForm({
                       id={inputId}
                       type="password"
                       aria-invalid={fieldState.invalid}
-                      placeholder={`Enter ${provider.label} API key`}
+                      placeholder={`Paste your ${provider.label} API key`}
                     />
                     <Button
                       type="submit"
                       disabled={form.formState.isSubmitting || isRemoving}
                     >
                       {form.formState.isSubmitting ? <Spinner /> : null}
-                      Save
+                      Save key
                     </Button>
                     {isSaved ? (
                       <Button
@@ -516,7 +528,7 @@ function AiProviderForm({
                         onClick={removeKey}
                       >
                         {isRemoving ? <Spinner /> : null}
-                        Remove Key
+                        Remove key
                       </Button>
                     ) : null}
                   </div>

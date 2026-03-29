@@ -65,10 +65,10 @@ function ProvidersPage() {
       <div className="inner">
         <div className="flex flex-col gap-8">
           <div className="space-y-3">
-            <h1 className="text-4xl font-bold">AI Providers</h1>
+            <h1 className="text-4xl font-bold">AI providers</h1>
             <p className="max-w-2xl text-muted-foreground">
-              Manage the API keys Sotion uses for chat. Save a new key any time
-              to replace the one currently stored for that provider.
+              Add the AI providers you want Sotion to use in chat. You can
+              replace or remove a saved key at any time.
             </p>
           </div>
 
@@ -113,8 +113,8 @@ function ProviderCardForm({
 
   const onSubmit = async (values: AiProviderFormValues) => {
     const nextSuccessMessage = isSaved
-      ? "API key updated. The previous saved key was replaced."
-      : "API key saved.";
+      ? "Key updated. The previous key was replaced."
+      : "Key saved.";
 
     try {
       form.clearErrors();
@@ -132,7 +132,9 @@ function ProviderCardForm({
       setSuccessMessage(null);
       form.setError("apiKey", {
         message:
-          error instanceof Error ? error.message : "Failed to save API key.",
+          error instanceof Error
+            ? error.message
+            : "We couldn't save this API key.",
       });
     }
   };
@@ -148,13 +150,15 @@ function ProviderCardForm({
         },
       });
       form.reset();
-      setSuccessMessage("API key removed.");
+      setSuccessMessage("Key removed.");
       await onSaved();
     } catch (error) {
       setSuccessMessage(null);
       form.setError("apiKey", {
         message:
-          error instanceof Error ? error.message : "Failed to remove API key.",
+          error instanceof Error
+            ? error.message
+            : "We couldn't remove this API key.",
       });
     } finally {
       setIsRemoving(false);
@@ -168,7 +172,7 @@ function ProviderCardForm({
           <h2 className="text-lg font-semibold">{provider.label}</h2>
         </div>
         <div className="flex items-center gap-1">
-          {isSaved ? <Badge variant="outline">Saved</Badge> : null}
+          {isSaved ? <Badge variant="outline">Added</Badge> : null}
           <Button
             nativeButton={false}
             variant="ghost"
@@ -177,7 +181,7 @@ function ProviderCardForm({
               <a href={provider.keyUrl} target="_blank" rel="noreferrer" />
             }
           >
-            Get API key
+            Open key page
             <HugeiconsIcon icon={ArrowUpRight01Icon} className="size-4" />
           </Button>
         </div>
@@ -189,8 +193,8 @@ function ProviderCardForm({
             <Field>
               <FieldDescription>
                 {isSaved
-                  ? "A key is already saved for this provider. Saving again will override the existing key, or you can remove it."
-                  : "Paste the API key below to enable this provider."}
+                  ? "A key is already saved for this provider. Save a new one to replace it, or remove it if you no longer want to use this provider."
+                  : "Paste the API key from your provider account to start using this provider in Sotion."}
               </FieldDescription>
             </Field>
 
@@ -205,7 +209,7 @@ function ProviderCardForm({
                       id={inputId}
                       type="password"
                       aria-invalid={fieldState.invalid}
-                      placeholder={`Enter ${provider.label} API key`}
+                      placeholder={`Paste your ${provider.label} API key`}
                     />
                     <div className="flex items-center gap-3">
                       <Button
@@ -213,7 +217,7 @@ function ProviderCardForm({
                         disabled={form.formState.isSubmitting || isRemoving}
                       >
                         {form.formState.isSubmitting ? <Spinner /> : null}
-                        {isSaved ? "Save New Key" : "Save Key"}
+                        {isSaved ? "Replace key" : "Save key"}
                       </Button>
                       {isSaved ? (
                         <Button
@@ -223,7 +227,7 @@ function ProviderCardForm({
                           onClick={removeKey}
                         >
                           {isRemoving ? <Spinner /> : null}
-                          Remove Key
+                          Remove key
                         </Button>
                       ) : null}
                       {successMessage ? (

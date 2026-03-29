@@ -25,7 +25,7 @@ export const Route = createFileRoute("/api/integrations/notion/connect")({
         }
 
         if (result.type === "redirect") {
-          return new Response("Notion MCP authorization could not be started.", {
+          return new Response("We couldn't start the Notion connection.", {
             status: 500,
           });
         }
