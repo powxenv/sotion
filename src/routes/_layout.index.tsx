@@ -53,7 +53,7 @@ function RouteComponent() {
                 render={<a href="#product-preview" />}
               >
                 <HugeiconsIcon icon={Video01Icon} />
-                Preview the workspace
+                See Demo
               </Button>
             </div>
           </div>
