@@ -50,7 +50,13 @@ function RouteComponent() {
               <Button
                 nativeButton={false}
                 variant="secondary"
-                render={<a href="#product-preview" />}
+                render={
+                  <a
+                    href="https://youtu.be/YK8Xza1msIo"
+                    target="_blank"
+                    rel="noreferrer"
+                  />
+                }
               >
                 <HugeiconsIcon icon={Video01Icon} />
                 See Demo
