@@ -110,6 +110,39 @@ function normalizePostingInput(input: PostingInput): NormalizedPostingInput {
   };
 }
 
+function isLinkedInHashtagBoundary(text: string, index: number) {
+  const previous = index === 0 ? "" : text[index - 1]!;
+  const next = index + 1 < text.length ? text[index + 1]! : "";
+
+  const previousIsSafeBoundary =
+    previous === "" || /\s|[([{'"“”‘’.,!?;:]/.test(previous);
+  const nextStartsWord = /[A-Za-z0-9_]/.test(next);
+
+  return previousIsSafeBoundary && nextStartsWord;
+}
+
+function escapeLinkedInCommentary(text: string) {
+  let result = "";
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index]!;
+
+    if (char === "#" && isLinkedInHashtagBoundary(text, index)) {
+      result += char;
+      continue;
+    }
+
+    if (/[|{}@[\]()<>#\\*_~]/.test(char)) {
+      result += `\\${char}`;
+      continue;
+    }
+
+    result += char;
+  }
+
+  return result;
+}
+
 function getLatestRowsByProvider(rows: SocialConnectionRow[]) {
   const latestByProvider = new Map<SocialConnectionProviderId, SocialConnectionRow>();
 
@@ -354,7 +387,7 @@ async function publishLinkedInPost(args: {
     },
     body: JSON.stringify({
       author: `urn:li:person:${args.accountId}`,
-      commentary: args.input.text,
+      commentary: escapeLinkedInCommentary(args.input.text),
       visibility: "PUBLIC",
       distribution: {
         feedDistribution: "MAIN_FEED",
