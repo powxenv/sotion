@@ -200,7 +200,7 @@ function MessagePart({
                 <>
                   {part.state === "approval-requested" &&
                   onToolApprovalResponse ? (
-                    <CardFooter className="flex-col gap-2">
+                    <CardFooter className="flex gap-1">
                       <Button
                         size="sm"
                         onClick={() =>
