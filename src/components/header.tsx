@@ -56,10 +56,13 @@ const Header = () => {
     <header className="border-b fixed top-0 inset-x-0 z-50 bg-background/20 backdrop-blur-lg">
       <div className="inner">
         <div className="h-14 flex items-center justify-between">
-          <div className="flex items-center gap-1">
+          <Link
+            to="/"
+            className="flex items-center gap-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
             <img src="/logo.png" alt="Sotion" className="size-6 object-cover" />
             <span className="font-medium">Sotion</span>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-1">
             <ThemeToggle />
