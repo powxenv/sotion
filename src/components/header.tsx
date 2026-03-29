@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   AiMagicIcon,
@@ -27,7 +27,6 @@ import ThemeToggle from "./theme-toggle";
 import { Spinner } from "./ui/spinner";
 
 const Header = () => {
-  const navigate = useNavigate();
   const { data: session } = useSuspenseQuery(getSessionOptions());
   const [isSignInPending, startSignIn] = useTransition();
   const [isSignOutPending, startSignOut] = useTransition();
@@ -45,7 +44,7 @@ const Header = () => {
       await authClient.signOut({
         fetchOptions: {
           onSuccess: async () => {
-            await navigate({ to: "/" });
+            window.location.href = "/";
           },
         },
       });
