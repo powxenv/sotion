@@ -37,7 +37,7 @@ function RouteComponent() {
             <h1 className="mb-2 text-center text-5xl font-bold">
               Turn your Notion workspace into social content.
             </h1>
-            <p className="mt-2 mb-4">
+            <p className="mt-2 mb-4 text-center">
               Sotion helps you turn notes, ideas, and drafts into ready-to-post
               content. Connect Notion, chat in plain language, and keep your
               workflow in one place.
