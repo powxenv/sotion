@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -15,6 +16,8 @@ type AiProviderDialogProps = {
 export default function AiProviderDialog({
   hasConfiguredProvider,
 }: AiProviderDialogProps) {
+  const navigate = useNavigate();
+
   if (hasConfiguredProvider) {
     return null;
   }
@@ -39,7 +42,7 @@ export default function AiProviderDialog({
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button nativeButton={false} render={<a href="/app/providers" />}>
+          <Button onClick={() => navigate({ to: "/app/providers" })}>
             Open AI Providers
           </Button>
         </DialogFooter>
