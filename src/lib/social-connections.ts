@@ -1,11 +1,22 @@
-export const SOCIAL_CONNECTION_PROVIDERS = [
+type SocialConnectionProviderDefinition = {
+  availability: "available" | "disabled";
+  availabilityLabel?: string;
+  id: "twitter" | "linkedin" | "threads";
+  initials: string;
+  label: string;
+  logoPath: string;
+  providerType: "social" | "oauth2";
+  summary: string;
+};
+
+export const SOCIAL_CONNECTION_PROVIDERS: readonly SocialConnectionProviderDefinition[] = [
   {
     id: "twitter",
-    label: "Twitter",
-    initials: "T",
+    label: "X",
+    initials: "X",
     logoPath: "/social-icons/x.svg",
     summary:
-      "Link your X account with publish-ready scopes so Sotion can post text and media later.",
+      "Link your X account with publish-ready scopes so Sotion can publish text posts later.",
     providerType: "social",
     availability: "available",
   },
@@ -15,31 +26,9 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     initials: "in",
     logoPath: "/social-icons/linkedin.svg",
     summary:
-      "Connect LinkedIn with member publishing access so Sotion can publish on your behalf later.",
+      "Connect LinkedIn with member publishing access so Sotion can publish text updates on your behalf later.",
     providerType: "social",
     availability: "available",
-  },
-  {
-    id: "facebook",
-    label: "Facebook",
-    initials: "f",
-    logoPath: "/social-icons/facebook.svg",
-    summary:
-      "Connect Facebook with Page publishing permissions so Sotion can publish posts and videos later.",
-    providerType: "social",
-    availability: "disabled",
-    availabilityLabel: "Currently unavailable",
-  },
-  {
-    id: "instagram",
-    label: "Instagram",
-    initials: "IG",
-    logoPath: "/social-icons/instagram.svg",
-    summary:
-      "Attach Instagram with business publishing access so Sotion can publish feed content later.",
-    providerType: "oauth2",
-    availability: "disabled",
-    availabilityLabel: "Currently unavailable",
   },
   {
     id: "threads",
@@ -47,22 +36,11 @@ export const SOCIAL_CONNECTION_PROVIDERS = [
     initials: "@",
     logoPath: "/social-icons/threads.svg",
     summary:
-      "Attach Threads with content publishing access so Sotion can publish Threads posts later.",
+      "Attach Threads with content publishing access so Sotion can publish text posts later.",
     providerType: "oauth2",
-    availability: "disabled",
-    availabilityLabel: "Currently unavailable",
-  },
-  {
-    id: "tiktok",
-    label: "TikTok",
-    initials: "TT",
-    logoPath: "/social-icons/tiktok.svg",
-    summary:
-      "Link TikTok with direct-post access so Sotion can publish videos later.",
-    providerType: "social",
     availability: "available",
   },
-] as const;
+];
 
 export type SocialConnectionProvider =
   (typeof SOCIAL_CONNECTION_PROVIDERS)[number];

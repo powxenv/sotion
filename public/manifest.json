@@ -1,7 +1,7 @@
 {
   "short_name": "Sotion",
   "name": "Sotion",
-  "description": "Sotion is an AI agent for social media work powered by your Notion workspace.",
+  "description": "Sotion is an AI agent for text-based social media work powered by your Notion workspace.",
   "icons": [
     {
       "src": "android-chrome-192x192.png",

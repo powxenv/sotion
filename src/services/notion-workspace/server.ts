@@ -57,21 +57,3 @@ export async function saveSocialMediaWorkspaceForUser(args: {
 
   return getSocialMediaWorkspaceForUser(args.userId);
 }
-
-export function formatSocialMediaWorkspaceForPrompt(
-  workspace: typeof notionWorkspace.$inferSelect | null,
-) {
-  if (!workspace) {
-    return [
-      "No dedicated Notion social media workspace is saved for this user yet.",
-      "If the user wants to manage social media content in Notion, create one dedicated page and one dedicated database with Notion MCP tools, then call `set_social_media_workspace` to save the resulting page ID and database ID.",
-    ].join("\n");
-  }
-
-  return [
-    "Saved default Notion social media workspace:",
-    `- Page ID: ${workspace.pageId}`,
-    `- Database ID: ${workspace.databaseId}`,
-    `- Source: ${workspace.source}`,
-  ].join("\n");
-}

@@ -7,24 +7,18 @@ import { db } from "#/db";
 import { env } from "#/env";
 import { SOCIAL_CONNECTION_PROVIDERS } from "#/lib/social-connections";
 
-const TWITTER_PUBLISH_SCOPES = ["offline.access", "tweet.write", "media.write"];
-const LINKEDIN_PUBLISH_SCOPES = ["w_member_social"];
-const FACEBOOK_PUBLISH_SCOPES = [
-  "pages_show_list",
-  "pages_read_engagement",
-  "pages_manage_posts",
-  "pages_manage_metadata",
-  "publish_video",
-];
-const INSTAGRAM_PUBLISH_SCOPES = [
-  "instagram_business_basic",
-  "instagram_business_content_publish",
-];
-const THREADS_PUBLISH_SCOPES = [
+export const TWITTER_PUBLISH_SCOPES = [
+  "offline.access",
+  "tweet.read",
+  "tweet.write",
+  "users.read",
+  "media.write",
+] satisfies string[];
+export const LINKEDIN_PUBLISH_SCOPES = ["w_member_social"] satisfies string[];
+export const THREADS_PUBLISH_SCOPES = [
   "threads_basic",
   "threads_content_publish",
-];
-const TIKTOK_PUBLISH_SCOPES = ["video.publish"];
+] satisfies string[];
 
 type MetaTokenPayload = {
   access_token: string;
@@ -99,106 +93,9 @@ const socialProviders = {
     disableImplicitSignUp: true,
     disableSignUp: true,
   },
-  facebook: {
-    clientId: env.FACEBOOK_CLIENT_ID,
-    clientSecret: env.FACEBOOK_CLIENT_SECRET,
-    scope: FACEBOOK_PUBLISH_SCOPES,
-    disableImplicitSignUp: true,
-    disableSignUp: true,
-  },
-  tiktok: {
-    clientKey: env.TIKTOK_CLIENT_KEY,
-    clientSecret: env.TIKTOK_CLIENT_SECRET,
-    scope: TIKTOK_PUBLISH_SCOPES,
-    disableImplicitSignUp: true,
-    disableSignUp: true,
-  },
 };
 
 const genericOAuthProviders = [
-  {
-    providerId: "instagram",
-    clientId: env.INSTAGRAM_CLIENT_ID,
-    clientSecret: env.INSTAGRAM_CLIENT_SECRET,
-    authorizationUrl: "https://www.instagram.com/oauth/authorize",
-    tokenUrl: "https://api.instagram.com/oauth/access_token",
-    scopes: INSTAGRAM_PUBLISH_SCOPES,
-    disableImplicitSignUp: true,
-    disableSignUp: true,
-    authorizationUrlParams: {
-      scope: INSTAGRAM_PUBLISH_SCOPES.join(","),
-    },
-    async getToken({
-      code,
-      redirectURI,
-    }: {
-      code: string;
-      redirectURI: string;
-      codeVerifier?: string;
-      deviceId?: string;
-    }) {
-      const body = new FormData();
-      body.set("client_id", env.INSTAGRAM_CLIENT_ID);
-      body.set("client_secret", env.INSTAGRAM_CLIENT_SECRET);
-      body.set("grant_type", "authorization_code");
-      body.set("redirect_uri", redirectURI);
-      body.set("code", code);
-
-      const shortLivedResponse = unwrapMetaTokenPayload(
-        await fetchJson<MetaTokenPayload | { data?: MetaTokenPayload[] }>(
-          "https://api.instagram.com/oauth/access_token",
-          {
-            method: "POST",
-            body,
-          },
-        ),
-      );
-      const longLivedResponse = await exchangeMetaLongLivedToken({
-        accessToken: shortLivedResponse.access_token,
-        clientSecret: env.INSTAGRAM_CLIENT_SECRET,
-        exchangeUrl: "https://graph.instagram.com/access_token",
-        grantType: "ig_exchange_token",
-      });
-
-      return {
-        accessToken: longLivedResponse.access_token,
-        tokenType: longLivedResponse.token_type,
-        accessTokenExpiresAt: toExpiresAt(longLivedResponse.expires_in),
-        scopes: INSTAGRAM_PUBLISH_SCOPES,
-        raw: {
-          shortLived: shortLivedResponse,
-          longLived: longLivedResponse,
-        },
-      } satisfies OAuth2Tokens;
-    },
-    async getUserInfo(tokens: OAuth2Tokens) {
-      if (!tokens.accessToken) {
-        return null;
-      }
-
-      const profileUrl = new URL("https://graph.instagram.com/me");
-      profileUrl.searchParams.set(
-        "fields",
-        "user_id,username,name,profile_picture_url",
-      );
-      profileUrl.searchParams.set("access_token", tokens.accessToken);
-
-      const profile = await fetchJson<{
-        user_id: string;
-        username?: string;
-        name?: string;
-        profile_picture_url?: string;
-      }>(profileUrl);
-
-      return {
-        id: profile.user_id,
-        name: profile.name ?? profile.username ?? "Instagram",
-        email: null,
-        emailVerified: false,
-        image: profile.profile_picture_url,
-      };
-    },
-  },
   {
     providerId: "threads",
     clientId: env.THREADS_CLIENT_ID,

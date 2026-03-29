@@ -8,15 +8,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { auth } from "#/lib/auth";
 import { filterPresetTools } from "#/lib/mcp-providers";
-import {
-  createChatAgent,
-  type ChatMessage,
-} from "#/services/chat/agent";
-import { buildChatAgentInstructions } from "#/services/chat/prompt";
-import {
-  resolveChatLanguageModel,
-  saveChat,
-} from "#/services/chat/server";
+import { createChatAgent, type ChatMessage } from "#/services/chat/agent";
+import { resolveChatLanguageModel, saveChat } from "#/services/chat/server";
 import { createChatAppTools } from "#/services/chat/tools";
 import { createEnabledMcpClientsForUser } from "#/services/mcp-settings/server";
 import { createAuthorizedNotionMcpClient } from "#/services/notion-mcp/server";
@@ -28,6 +21,10 @@ const chatRequestBodySchema = z.object({
   messages: z.array(z.looseObject({})),
   selectedModel: z.string().optional(),
 });
+
+async function closeMcpClients(clients: MCPClient[]) {
+  await Promise.allSettled(clients.map((client) => client.close()));
+}
 
 export const Route = createFileRoute("/api/chat")({
   server: {
@@ -48,11 +45,10 @@ export const Route = createFileRoute("/api/chat")({
           return Response.json({ error: "missing_chat_id" }, { status: 400 });
         }
 
-        const notionMcpClientResult =
-          await createAuthorizedNotionMcpClient({
-            userId: session.user.id,
-            origin: new URL(request.url).origin,
-          });
+        const notionMcpClientResult = await createAuthorizedNotionMcpClient({
+          userId: session.user.id,
+          origin: new URL(request.url).origin,
+        });
 
         if (!notionMcpClientResult.ok) {
           return Response.json(
@@ -64,8 +60,9 @@ export const Route = createFileRoute("/api/chat")({
         mcpClients.push(notionMcpClientResult.client);
 
         try {
-          const configuredMcpClients =
-            await createEnabledMcpClientsForUser(session.user.id);
+          const configuredMcpClients = await createEnabledMcpClientsForUser(
+            session.user.id,
+          );
           mcpClients.push(...configuredMcpClients.map(({ client }) => client));
 
           const toolSets = await Promise.all(
@@ -96,7 +93,10 @@ export const Route = createFileRoute("/api/chat")({
           const tools = Object.assign(
             {},
             ...toolSets,
-            createChatAppTools({ userId: session.user.id }),
+            createChatAppTools({
+              headers: request.headers,
+              userId: session.user.id,
+            }),
           );
           const validatedMessages = await validateUIMessages<ChatMessage>({
             messages,
@@ -113,34 +113,38 @@ export const Route = createFileRoute("/api/chat")({
             userId: session.user.id,
             selectedModel,
           });
-
           const agent = createChatAgent({
             model,
             tools,
-            instructions: buildChatAgentInstructions({ workspace }),
+            workspace,
           });
 
-          return await createAgentUIStreamResponse({
+          return createAgentUIStreamResponse({
             agent,
             uiMessages: validatedMessages,
-            originalMessages: validatedMessages,
+            abortSignal: request.signal,
             generateMessageId: createIdGenerator({
               prefix: "msg",
               size: 16,
             }),
+            onError: (error) => {
+              if (error instanceof Error) {
+                return error.message;
+              }
+
+              return "An unexpected error occurred while processing the chat.";
+            },
             onFinish: async ({ messages: responseMessages }) => {
-              await Promise.all([
-                saveChat({
-                  userId: session.user.id,
-                  chatId: resolvedChatId,
-                  messages: responseMessages,
-                }),
-                ...mcpClients.map((mcpClient) => mcpClient.close()),
-              ]);
+              await saveChat({
+                userId: session.user.id,
+                chatId: resolvedChatId,
+                messages: responseMessages,
+              });
+              await closeMcpClients(mcpClients);
             },
           });
         } catch (error) {
-          await Promise.allSettled(mcpClients.map((mcpClient) => mcpClient.close()));
+          await closeMcpClients(mcpClients);
           if (error instanceof Response) {
             return error;
           }

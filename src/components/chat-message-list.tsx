@@ -16,6 +16,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "#/components/ui/button";
 import { Idea01Icon, Wrench01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 
@@ -70,14 +71,21 @@ function MessagePart({
   isStreaming,
   isLastMessage,
   isLastPart,
+  onToolApprovalResponse,
 }: {
   part: ChatMessagePart;
   isStreaming: boolean;
   isLastMessage: boolean;
   isLastPart: boolean;
+  onToolApprovalResponse?: (
+    approvalId: string,
+    approved: boolean,
+  ) => void | Promise<void>;
 }) {
   if (part.type === "text" && part.text.trim() !== "") {
-    return <MessageMarkdown className="text-inherit">{part.text}</MessageMarkdown>;
+    return (
+      <MessageMarkdown className="text-inherit">{part.text}</MessageMarkdown>
+    );
   }
 
   if (isReasoningUIPart(part)) {
@@ -106,49 +114,73 @@ function MessagePart({
       isLastMessage && isLastPart && isStreaming && !isToolPartDone(part);
 
     return (
-      <Accordion>
-        <AccordionItem value="tool">
-          <AccordionTrigger className="flex items-center gap-1">
-            <PartStatusIcon isPending={isPending} icon={Wrench01Icon} />
-            Calling {getToolName(part)}
-          </AccordionTrigger>
-          <AccordionContent>
-            {"input" in part && part.input !== undefined ? (
-              <div className="mt-3">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Input
-                </p>
-                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
-                  {toJson(part.input)}
-                </pre>
-              </div>
+      <>
+        <Accordion>
+          <AccordionItem value="tool">
+            <AccordionTrigger className="flex items-center gap-1">
+              <PartStatusIcon isPending={isPending} icon={Wrench01Icon} />
+              Calling {getToolName(part)}
+            </AccordionTrigger>
+            <AccordionContent>
+              {"input" in part && part.input !== undefined ? (
+                <div className="mt-3">
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Input
+                  </p>
+                  <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
+                    {toJson(part.input)}
+                  </pre>
+                </div>
+              ) : null}
+              {"output" in part && part.output !== undefined ? (
+                <div className="mt-3">
+                  <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Output
+                  </p>
+                  <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
+                    {toJson(part.output)}
+                  </pre>
+                </div>
+              ) : null}
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+        {"approval" in part && part.approval ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {part.state === "approval-requested" && onToolApprovalResponse ? (
+              <>
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    void onToolApprovalResponse(part.approval.id, true)
+                  }
+                >
+                  Approve {getToolName(part)}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() =>
+                    void onToolApprovalResponse(part.approval.id, false)
+                  }
+                >
+                  Deny {getToolName(part)}
+                </Button>
+              </>
             ) : null}
-            {"output" in part && part.output !== undefined ? (
-              <div className="mt-3">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Output
-                </p>
-                <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs whitespace-pre-wrap">
-                  {toJson(part.output)}
-                </pre>
-              </div>
-            ) : null}
-            {"errorText" in part && part.errorText ? (
-              <p className="mt-3 text-sm text-destructive">{part.errorText}</p>
-            ) : null}
-            {"approval" in part && part.approval ? (
-              <p className="mt-3 text-xs text-muted-foreground">
-                Approval:{" "}
-                {"approved" in part.approval
-                  ? part.approval.approved
-                    ? "approved"
-                    : "denied"
-                  : "requested"}
-              </p>
-            ) : null}
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+            <p className="text-xs text-muted-foreground">
+              {"approved" in part.approval
+                ? part.approval.approved
+                  ? "approved"
+                  : "denied"
+                : "requested"}
+            </p>
+          </div>
+        ) : null}
+        {"errorText" in part && part.errorText ? (
+          <p className="mt-3 text-sm text-destructive">{part.errorText}</p>
+        ) : null}
+      </>
     );
   }
 
@@ -221,10 +253,15 @@ export default function ChatMessageList({
   messages,
   status,
   error,
+  onToolApprovalResponse,
 }: {
   messages: ChatMessage[];
   status: ChatStatus;
   error?: Error;
+  onToolApprovalResponse?: (
+    approvalId: string,
+    approved: boolean,
+  ) => void | Promise<void>;
 }) {
   return (
     <div className="mx-auto w-full max-w-3xl flex flex-col gap-4 pb-50">
@@ -233,7 +270,7 @@ export default function ChatMessageList({
           key={message.id}
           className={cn(
             message.role === "user"
-              ? "ml-auto bg-primary text-primary-foreground text-sm min-h-9 px-4 py-2.5 rounded-xl"
+              ? "ml-auto bg-secondary text-secondary-foreground text-sm min-h-9 px-4 py-2.5 rounded-xl"
               : "",
           )}
         >
@@ -245,6 +282,7 @@ export default function ChatMessageList({
                 isStreaming={status === "streaming" || status === "submitted"}
                 isLastMessage={messageIndex === messages.length - 1}
                 isLastPart={index === message.parts.length - 1}
+                onToolApprovalResponse={onToolApprovalResponse}
               />
             ))}
           </div>

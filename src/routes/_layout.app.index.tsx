@@ -1,4 +1,7 @@
-import { DefaultChatTransport } from "ai";
+import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithApprovalResponses,
+} from "ai";
 import { useChat } from "@ai-sdk/react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -122,10 +125,13 @@ function App() {
     }
   }, [currentChat.messagesJson]);
 
-  const { messages, sendMessage, status, error } = useChat<ChatMessage>({
+  const { messages, sendMessage, status, error, addToolApprovalResponse } =
+    useChat<ChatMessage>({
     id: currentChat.id,
     messages: initialMessages,
     transport: chatTransport,
+    sendAutomaticallyWhen:
+      lastAssistantMessageIsCompleteWithApprovalResponses,
   });
   const isChatDisabled =
     !mcpStatus.connected || !selectedModel || status !== "ready";
@@ -206,6 +212,16 @@ function App() {
     [mcpStatus.connected, selectedModel, sendMessage, status],
   );
 
+  const handleToolApprovalResponse = useCallback(
+    async (approvalId: string, approved: boolean) => {
+      await addToolApprovalResponse({
+        id: approvalId,
+        approved,
+      });
+    },
+    [addToolApprovalResponse],
+  );
+
   return (
     <>
       <McpDialog status={mcpStatus} />
@@ -244,6 +260,7 @@ function App() {
                 messages={messages}
                 status={status}
                 error={error}
+                onToolApprovalResponse={handleToolApprovalResponse}
               />
             )}
           </div>

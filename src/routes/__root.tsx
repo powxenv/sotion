@@ -38,7 +38,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         name: "description",
         content:
-          "Sotion is an AI agent for social media work. It turns your Notion workspace into ready-to-use context for writing, planning, and publishing content.",
+          "Sotion is an AI agent for text-based social media work. It turns your Notion workspace into ready-to-use context for writing, planning, and publishing content.",
       },
       {
         name: "theme-color",
@@ -51,7 +51,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         property: "og:description",
         content:
-          "Sotion is an AI agent for social media work. Connect your Notion workspace, chat naturally, and let Sotion help manage content and publishing.",
+          "Sotion is an AI agent for text-based social media work. Connect your Notion workspace, chat naturally, and let Sotion help manage content and publishing.",
       },
       {
         property: "og:type",
@@ -72,7 +72,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       {
         name: "twitter:description",
         content:
-          "Connect Notion, add your AI provider, and use Sotion to manage social media content in one place.",
+          "Connect Notion, add your AI provider, and use Sotion to manage text-based social media content in one place.",
       },
       {
         name: "twitter:image",
