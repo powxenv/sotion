@@ -36,10 +36,7 @@ import {
 import { InputGroupAddon } from "@/components/ui/input-group";
 import { listAiProviderSettingsOptions } from "#/services/ai-provider-settings/funcs";
 import type { ChatMessage } from "#/services/chat/agent";
-import {
-  clearCurrentChat,
-  getCurrentChatOptions,
-} from "#/services/chat/funcs";
+import { clearCurrentChat, getCurrentChatOptions } from "#/services/chat/funcs";
 import { getNotionMcpStatusOptions } from "#/services/notion-mcp/funcs";
 import { getOnboardingStateOptions } from "#/services/onboarding/funcs";
 import { getSessionOptions } from "#/services/auth/funcs";
@@ -147,15 +144,14 @@ function App() {
     status,
     error,
     addToolApprovalResponse,
-  } =
-    useChat<ChatMessage>({
-      id: currentChat.id,
-      messages: initialMessages,
-      transport: chatTransport,
-      sendAutomaticallyWhen:
-        lastAssistantMessageIsCompleteWithApprovalResponses,
-    });
-  const shouldShowMcpDialog = !mcpStatus.connected && mcpStatus.hasConnectedBefore;
+  } = useChat<ChatMessage>({
+    id: currentChat.id,
+    messages: initialMessages,
+    transport: chatTransport,
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+  });
+  const shouldShowMcpDialog =
+    !mcpStatus.connected && mcpStatus.hasConnectedBefore;
   const shouldShowAiProviderDialog = !hasConfiguredProvider;
   const isChatDisabled =
     !mcpStatus.connected ||
@@ -337,7 +333,7 @@ function App() {
           </div>
         </ScrollArea>
 
-        <div className="p-4 transition-all focus-within:border-primary border bg-background rounded-md flex flex-col gap-2 max-w-3xl mx-auto absolute bottom-6 left-1/2 -translate-x-1/2 w-full shadow-lg shadow-black/4">
+        <div className="p-4 transition-all focus-within:border-primary border bg-background rounded-md flex flex-col gap-2 max-w-3xl mx-auto absolute sm:bottom-6 bottom-0 left-1/2 -translate-x-1/2 w-full shadow-lg shadow-black/4">
           <textarea
             value={input}
             disabled={isChatDisabled}
@@ -354,11 +350,11 @@ function App() {
               }
             }}
             className={cn(
-              "flex field-sizing-content min-h-9 w-full outline-none resize-none max-h-60 text-muted-foreground",
+              "flex field-sizing-content min-h-9 w-full outline-none resize-none max-h-60",
             )}
           />
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-1">
             <div className="flex gap-1">
               <Combobox<ChatModelOption>
                 items={CHAT_MODEL_GROUPS}
