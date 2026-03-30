@@ -6,7 +6,7 @@ It helps users connect Notion, draft social posts with AI, keep content organize
 
 ## Demo
 
-Video demo: [https://youtu.be/YK8Xza1msIo](https://youtu.be/YK8Xza1msIo)
+https://github.com/user-attachments/assets/4f2e9bb9-f75e-4c22-ab85-b3700d202a51
 
 ## Key Features
 
