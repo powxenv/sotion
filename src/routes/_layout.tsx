@@ -25,11 +25,7 @@ function RouteComponent() {
       <div className="flex-1">
         <Outlet />
       </div>
-      {hideFooter ? null : (
-        <div className="inner w-full">
-          <SiteFooter />
-        </div>
-      )}
+      {hideFooter ? null : <SiteFooter />}
     </div>
   );
 }
